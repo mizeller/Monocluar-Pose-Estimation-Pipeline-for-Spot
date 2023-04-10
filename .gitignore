@@ -31,3 +31,5 @@ docs/source/images/
 docs/source/examples/
 docs/source/*md
 blenderproc_resources/
+resources/texture_library
+spot/spot_robot_copy

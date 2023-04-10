@@ -21,7 +21,13 @@ class URDFObject(Entity):
     This class represents an URDF object, which is comprised of an armature and one or multiple links. Among others, it
     serves as an interface for manipulation of the URDF model.
     """
-    def __init__(self, armature: bpy.types.Armature, links: List[Link], xml_tree: Optional["urdfpy.URDF"] = None):
+
+    def __init__(
+        self,
+        armature: bpy.types.Armature,
+        links: List[Link],
+        xml_tree: Optional["urdfpy.URDF"] = None,
+    ):
         super().__init__(bpy_object=armature)
 
         object.__setattr__(self, "links", links)
@@ -30,10 +36,10 @@ class URDFObject(Entity):
         object.__setattr__(self, "ik_bone_controller", None)
         object.__setattr__(self, "fk_ik_mode", None)
         object.__setattr__(self, "ik_link", None)
-        object.__setattr__(self, 'ik_bone_offset', None)
+        object.__setattr__(self, "ik_bone_offset", None)
 
     def get_all_urdf_objs(self) -> List[Union[Link, Inertial, MeshObject]]:
-        """ Returns a list of all urdf-related objects.
+        """Returns a list of all urdf-related objects.
 
         :return: List of all urdf-related objects.
         """
@@ -44,28 +50,30 @@ class URDFObject(Entity):
         return objs
 
     def get_all_collision_objs(self) -> List[MeshObject]:
-        """ Returns a list of all collision objects.
+        """Returns a list of all collision objects.
 
         :return: List of all collision objects.
         """
-        return [obj for obj in self.get_all_urdf_objs() if 'collision' in obj.get_name()]
+        return [
+            obj for obj in self.get_all_urdf_objs() if "collision" in obj.get_name()
+        ]
 
     def get_all_inertial_objs(self) -> List[Inertial]:
-        """ Returns a list of all inertial objects.
+        """Returns a list of all inertial objects.
 
         :return: List of all inertial objects.
         """
         return [obj for obj in self.get_all_urdf_objs() if isinstance(obj, Inertial)]
 
     def get_all_visual_objs(self) -> List[MeshObject]:
-        """ Returns a list of all visual objects.
+        """Returns a list of all visual objects.
 
         :return: List of all visual objects.
         """
-        return [obj for obj in self.get_all_urdf_objs() if 'visual' in obj.get_name()]
+        return [obj for obj in self.get_all_urdf_objs() if "visual" in obj.get_name()]
 
     def hide_links_and_collision_inertial_objs(self):
-        """ Hides links and their respective collision and inertial objects from rendering. """
+        """Hides links and their respective collision and inertial objects from rendering."""
         self.blender_obj.hide_set(True)
         for link in self.links:
             for obj in link.get_all_objs():
@@ -73,29 +81,33 @@ class URDFObject(Entity):
                     obj.hide()
 
     def set_ascending_category_ids(self, category_ids: Optional[List[int]] = None):
-        """ Sets semantic categories to the links and their associated objects.
+        """Sets semantic categories to the links and their associated objects.
 
         :param category_ids: List of 'category_id's for every link. If None, will create a list from [1 ... len(links)].
         """
         if category_ids is None:
             category_ids = list(range(1, len(self.links) + 1))
 
-        assert len(category_ids) == len(self.links), f"Need equal amount of category ids for links. Got " \
-                                                     f"{len(category_ids)} and {len(self.links)}, respectively."
+        assert len(category_ids) == len(self.links), (
+            f"Need equal amount of category ids for links. Got "
+            f"{len(category_ids)} and {len(self.links)}, respectively."
+        )
         for link, category_id in zip(self.links, category_ids):
             link.set_cp(key="category_id", value=category_id)
             for obj in link.get_all_objs():
                 obj.set_cp(key="category_id", value=category_id)
 
     def remove_link_by_index(self, index: int = 0):
-        """ Removes a link and all its associated objects given an index. Also handles relationship of the link's child
+        """Removes a link and all its associated objects given an index. Also handles relationship of the link's child
             with its parent. This is useful for removing a 'world link' which could be a simple flat surface, or if
             someone wants to shorten the whole urdf object.
 
         :param index: Index of the joint to be removed.
         """
-        assert index < len(self.links), f"Invalid index {index}. Index must be in range 0, {len(self.links)} (no. " \
-                                        f"links: {len(self.links)})."
+        assert index < len(self.links), (
+            f"Invalid index {index}. Index must be in range 0, {len(self.links)} (no. "
+            f"links: {len(self.links)})."
+        )
 
         # remove link from the urdf instance and determine child / parent
         link_to_be_removed = self.links.pop(index)
@@ -103,13 +115,18 @@ class URDFObject(Entity):
 
         # remove bones and assign old bone pose to child bone
         if child is not None and link_to_be_removed.bone is not None:
-            print(f'Trying to put {child.get_name()} to position of {link_to_be_removed.get_name()}')
+            print(
+                f"Trying to put {child.get_name()} to position of {link_to_be_removed.get_name()}"
+            )
             bpy.context.view_layer.update()
-            bpy.ops.object.select_all(action='DESELECT')
+            bpy.ops.object.select_all(action="DESELECT")
             bpy.context.view_layer.objects.active = self.blender_obj
-            bpy.ops.object.mode_set(mode='EDIT', toggle=False)
+            bpy.ops.object.mode_set(mode="EDIT", toggle=False)
             edit_bones = self.blender_obj.data.edit_bones
-            offset = edit_bones[child.bone.name].head - edit_bones[link_to_be_removed.bone.name].head
+            offset = (
+                edit_bones[child.bone.name].head
+                - edit_bones[link_to_be_removed.bone.name].head
+            )
 
             edit_bones[child.bone.name].head -= offset
             edit_bones[child.bone.name].tail -= offset
@@ -128,7 +145,7 @@ class URDFObject(Entity):
                 edit_bones[grand_child.ik_bone.name].tail -= offset
                 grand_child = grand_child.get_link_child()
 
-            bpy.ops.object.mode_set(mode='OBJECT')
+            bpy.ops.object.mode_set(mode="OBJECT")
             bpy.context.view_layer.update()
 
             # do the same for the link objects
@@ -148,7 +165,7 @@ class URDFObject(Entity):
             link_to_be_removed.delete()
 
     def hide(self, hide_object: bool = True):
-        """ Sets the visibility of the object.
+        """Sets the visibility of the object.
 
         :param hide_object: Determines whether the object should be hidden in rendering.
         """
@@ -157,7 +174,7 @@ class URDFObject(Entity):
             link.hide(hide_object=hide_object)
 
     def get_all_local2world_mats(self) -> np.array:
-        """ Returns all matrix_world matrices from every joint.
+        """Returns all matrix_world matrices from every joint.
 
         :return: Numpy array of shape (num_bones, 4, 4).
         """
@@ -170,61 +187,80 @@ class URDFObject(Entity):
         return np.stack(matrices)
 
     def get_all_visual_local2world_mats(self) -> np.array:
-        """ Returns all transformations from world frame to the visual objects.
+        """Returns all transformations from world frame to the visual objects.
 
         :return: Numpy array of shape (num_bones, 4, 4).
         """
-        return np.stack([link.get_visual_local2world_mats(Matrix(self.get_local2world_mat())) for link in self.links])
+        # TODO: figure out for which links, get_visual... returns None
+        array = [
+            link.get_visual_local2world_mats(Matrix(self.get_local2world_mat()))
+            for link in self.links
+        ]
+        array_filtered = [el for el in array if el is not None]
+        array_stacked = np.stack(array_filtered)
+        return array_stacked
+        # return np.stack([link.get_visual_local2world_mats(Matrix(self.get_local2world_mat())) for link in self.links])
 
     def get_all_collision_local2world_mats(self) -> np.array:
-        """ Returns all transformations from the world frame to the collision objects.
+        """Returns all transformations from the world frame to the collision objects.
 
         :return: Numpy array of shape (num_bones, 4, 4).
         """
-        return np.stack([
-            link.get_collision_local2world_mats(Matrix(self.get_local2world_mat())) for link in self.links
-        ])
+        return np.stack(
+            [
+                link.get_collision_local2world_mats(Matrix(self.get_local2world_mat()))
+                for link in self.links
+            ]
+        )
 
     def get_all_inertial_local2world_mats(self) -> np.array:
-        """ Returns all transformations from the world frame to the inertial objects.
+        """Returns all transformations from the world frame to the inertial objects.
 
         :return: Numpy array of shape (num_bones, 4, 4).
         """
-        return np.stack([link.get_inertial_local2world_mat(Matrix(self.get_local2world_mat())) for link in self.links])
+        return np.stack(
+            [
+                link.get_inertial_local2world_mat(Matrix(self.get_local2world_mat()))
+                for link in self.links
+            ]
+        )
 
     def _set_ik_bone_controller(self, bone: bpy.types.PoseBone):
-        """ Sets the ik bone controller.
+        """Sets the ik bone controller.
 
         :param bone: Bone to set as ik control bone.
         """
         object.__setattr__(self, "ik_bone_controller", bone)
 
     def _set_ik_bone_constraint(self, bone: bpy.types.PoseBone):
-        """ Sets the ik bone constraint.
+        """Sets the ik bone constraint.
 
         :param bone: Bone to set as ik constraint bone.
         """
         object.__setattr__(self, "ik_bone_constraint", bone)
 
     def _set_fk_ik_mode(self, mode: str = "fk"):
-        """ Sets the mode of the bone chain.
+        """Sets the mode of the bone chain.
 
         :param mode: One of "fk" or "ik" for forward / inverse kinematic.
         """
         object.__setattr__(self, "fk_ik_mode", mode)
 
     def _set_ik_link(self, ik_link: Optional[Link]):
-        """ Sets the ik link constraint.
+        """Sets the ik link constraint.
 
         :param ik_link: Link to set as ik link.
         """
         object.__setattr__(self, "ik_link", ik_link)
 
-    def create_ik_bone_controller(self, link: Optional[Link] = None,
-                                  relative_location: Optional[Union[List[float], Vector]] = None,
-                                  use_rotation: bool = True,
-                                  chain_length: int = 0):
-        """ Creates an ik bone controller and a corresponding constraint bone for the respective link.
+    def create_ik_bone_controller(
+        self,
+        link: Optional[Link] = None,
+        relative_location: Optional[Union[List[float], Vector]] = None,
+        use_rotation: bool = True,
+        chain_length: int = 0,
+    ):
+        """Creates an ik bone controller and a corresponding constraint bone for the respective link.
 
         :param link: The link to create an ik bone for. If None, will use the last link.
         :param relative_location: Relative location of the ik bone controller w.r.t. the bone's location. This can be
@@ -234,14 +270,19 @@ class URDFObject(Entity):
                              parents.
         """
         if self.ik_bone_controller is not None:
-            raise NotImplementedError("URDFObject already has an ik bone controller. More than one ik controllers are "
-                                      "currently not supported!")
+            raise NotImplementedError(
+                "URDFObject already has an ik bone controller. More than one ik controllers are "
+                "currently not supported!"
+            )
         if relative_location is None:
-            relative_location = [0., 0., 0.]
+            relative_location = [0.0, 0.0, 0.0]
         if link is None:
             link = self.links[-1]
         ik_bone_controller, ik_bone_constraint, offset = link.create_ik_bone_controller(
-            relative_location=relative_location, use_rotation=use_rotation, chain_length=chain_length)
+            relative_location=relative_location,
+            use_rotation=use_rotation,
+            chain_length=chain_length,
+        )
         self._set_ik_bone_controller(ik_bone_controller)
         self._set_ik_bone_constraint(ik_bone_constraint)
         self._set_ik_bone_offset(offset=offset)
@@ -249,7 +290,7 @@ class URDFObject(Entity):
         self._switch_fk_ik_mode(mode="ik")
 
     def _switch_fk_ik_mode(self, mode: str = "fk", keep_pose: bool = True):
-        """ Switches between forward and inverse kinematics mode. Will do this automatically when switching between e.g.
+        """Switches between forward and inverse kinematics mode. Will do this automatically when switching between e.g.
             `set_rotation_euler_fk()` and `set_rotation_euler_ik()`.
 
         :param mode: One of  for forward / inverse kinematik.
@@ -257,22 +298,24 @@ class URDFObject(Entity):
                           of the previously selected mode.
         """
         if mode == "ik" and self.ik_bone_controller is None:
-            raise NotImplementedError("URDFObject doesn't have an ik bone controller. Please set up an ik bone first "
-                                      "with 'urdf_object.create_ik_bone_controller()'")
+            raise NotImplementedError(
+                "URDFObject doesn't have an ik bone controller. Please set up an ik bone first "
+                "with 'urdf_object.create_ik_bone_controller()'"
+            )
         if self.fk_ik_mode != mode:
             for link in self.links:
                 link.switch_fk_ik_mode(mode=mode, keep_pose=keep_pose)
             self._set_fk_ik_mode(mode=mode)
 
     def get_links_with_revolute_joints(self) -> List[Link]:
-        """ Returns all revolute joints.
+        """Returns all revolute joints.
 
         :return: List of revolute joints.
         """
         return [link for link in self.links if link.joint_type == "revolute"]
 
     def _set_keyframe(self, name: str, frame: int = 0):
-        """ Sets a keyframe for a specific name for all bones of all links, as well as the copy_rotation constraint for
+        """Sets a keyframe for a specific name for all bones of all links, as well as the copy_rotation constraint for
             revolute joints.
 
         :param name: Name of the keyframe to be inserted.
@@ -285,9 +328,17 @@ class URDFObject(Entity):
                 Utility.insert_keyframe(link.bone, name, frame)
                 Utility.insert_keyframe(link.fk_bone, name, frame)
                 Utility.insert_keyframe(link.ik_bone, name, frame)
-                if link.joint_type == 'revolute':
-                    Utility.insert_keyframe(link.bone.constraints['copy_rotation.fk'], "influence", frame=frame)
-                    Utility.insert_keyframe(link.bone.constraints['copy_rotation.ik'], "influence", frame=frame)
+                if link.joint_type == "revolute":
+                    Utility.insert_keyframe(
+                        link.bone.constraints["copy_rotation.fk"],
+                        "influence",
+                        frame=frame,
+                    )
+                    Utility.insert_keyframe(
+                        link.bone.constraints["copy_rotation.ik"],
+                        "influence",
+                        frame=frame,
+                    )
         if self.ik_bone_controller is not None:
             Utility.insert_keyframe(self.ik_bone_controller, name, frame)
         if self.ik_bone_constraint is not None:
@@ -296,9 +347,14 @@ class URDFObject(Entity):
         if frame > bpy.context.scene.frame_end:
             bpy.context.scene.frame_end += 1
 
-    def set_rotation_euler_fk(self, link: Optional[Link], rotation_euler: Union[float, List[float], Euler, np.ndarray],
-                              mode: str = "absolute", frame: int = 0):
-        """ Rotates one specific link or all links based on euler angles in forward kinematic mode. Validates values
+    def set_rotation_euler_fk(
+        self,
+        link: Optional[Link],
+        rotation_euler: Union[float, List[float], Euler, np.ndarray],
+        mode: str = "absolute",
+        frame: int = 0,
+    ):
+        """Rotates one specific link or all links based on euler angles in forward kinematic mode. Validates values
             with given constraints.
 
         :param link: The link to be rotated. If None, will perform the rotation on all revolute joints.
@@ -316,17 +372,27 @@ class URDFObject(Entity):
             link.set_rotation_euler_fk(rotation_euler=rotation_euler, mode=mode)
         else:
             revolute_joints = self.get_links_with_revolute_joints()
-            if isinstance(rotation_euler, list) and len(revolute_joints) == len(rotation_euler):
+            if isinstance(rotation_euler, list) and len(revolute_joints) == len(
+                rotation_euler
+            ):
                 for revolute_joint, rotation in zip(revolute_joints, rotation_euler):
-                    revolute_joint.set_rotation_euler_fk(rotation_euler=rotation, mode=mode)
+                    revolute_joint.set_rotation_euler_fk(
+                        rotation_euler=rotation, mode=mode
+                    )
             else:
                 for revolute_joint in revolute_joints:
-                    revolute_joint.set_rotation_euler_fk(rotation_euler=rotation_euler, mode=mode)
+                    revolute_joint.set_rotation_euler_fk(
+                        rotation_euler=rotation_euler, mode=mode
+                    )
         self._set_keyframe(name="rotation_euler", frame=frame)
 
-    def set_rotation_euler_ik(self, rotation_euler: Union[float, List[float], Euler, np.ndarray],
-                              mode: str = "absolute", frame: int = 0):
-        """ Performs rotation in inverse kinematics mode.
+    def set_rotation_euler_ik(
+        self,
+        rotation_euler: Union[float, List[float], Euler, np.ndarray],
+        mode: str = "absolute",
+        frame: int = 0,
+    ):
+        """Performs rotation in inverse kinematics mode.
 
         :param rotation_euler: The amount of rotation (in radians). Either three floats for x, y and z axes, or a
                                single float. In the latter case, the axis of rotation is derived based on the rotation
@@ -342,8 +408,10 @@ class URDFObject(Entity):
         self.ik_link.set_rotation_euler_ik(rotation_euler=rotation_euler, mode=mode)
         self._set_keyframe(name="rotation_euler", frame=frame)
 
-    def set_location_ik(self, location: Union[List[float], np.array, Vector], frame: int = 0):
-        """ Performs location change in inverse kinematics mode.
+    def set_location_ik(
+        self, location: Union[List[float], np.array, Vector], frame: int = 0
+    ):
+        """Performs location change in inverse kinematics mode.
 
         :param location: Location vector.
         :param frame: The keyframe where to insert the rotation.
@@ -353,14 +421,18 @@ class URDFObject(Entity):
         self.ik_link.set_location_ik(location=location)
         self._set_keyframe(name="location", frame=frame)
 
-    def has_reached_ik_pose(self, location_error: float = 0.01, rotation_error: float = 0.01) -> bool:
-        """ Checks whether the urdf object was able to move to the currently set pose.
+    def has_reached_ik_pose(
+        self, location_error: float = 0.01, rotation_error: float = 0.01
+    ) -> bool:
+        """Checks whether the urdf object was able to move to the currently set pose.
 
         :param location_error: Tolerable location error in m.
         :param rotation_error: Tolerable rotation error in radians.
         :return: True if the link is at the desired ik pose; else False.
         """
-        curr_offset = self.ik_bone_controller.matrix.inverted() @ self.ik_bone_constraint.matrix
+        curr_offset = (
+            self.ik_bone_controller.matrix.inverted() @ self.ik_bone_constraint.matrix
+        )
         t_curr, q_curr, _ = curr_offset.decompose()
         t_orig, q_orig, _ = self.ik_bone_offset.decompose()
 
@@ -368,20 +440,25 @@ class URDFObject(Entity):
         q_diff = q_curr.rotation_difference(q_orig).angle
 
         if t_diff < location_error and q_diff < rotation_error:
-            print(f'Pose is within in given constraints:\n'
-                  f'  translation difference: {t_diff:.4f} (max: {location_error})\n'
-                  f'  rotation difference: {q_diff:.4f} (max: {rotation_error})')
+            print(
+                f"Pose is within in given constraints:\n"
+                f"  translation difference: {t_diff:.4f} (max: {location_error})\n"
+                f"  rotation difference: {q_diff:.4f} (max: {rotation_error})"
+            )
             return True
-        print(f'Pose is not within given constraints:\n'
-              f'  translation difference: {t_diff:.4f} (max: {location_error})\n'
-              f'  rotation difference: {q_diff:.4f} (max: {rotation_error})')
+        print(
+            f"Pose is not within given constraints:\n"
+            f"  translation difference: {t_diff:.4f} (max: {location_error})\n"
+            f"  rotation difference: {q_diff:.4f} (max: {rotation_error})"
+        )
         return False
 
     def _set_ik_bone_offset(self, offset: Matrix):
-        """ Sets the location offset between the control and constraint bone.
+        """Sets the location offset between the control and constraint bone.
 
         :param offset: The location offset.
         """
         object.__setattr__(self, "ik_bone_offset", offset)
+
 
 # pylint: enable=no-member

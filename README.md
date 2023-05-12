@@ -1,8 +1,9 @@
-# 3D Vision Project - Monocular Pose Estimation for Human-Robot Co-Localization
+# 3DV Project - Synthetic Data Pipeline
 > Students: Mae Yamaguchi, Jonas Bohn, Christopher Tibaldo, Michel Zeller
 
 ## Project Description
-> [insert description of the data here]
+In a multi-agent SLAM ... 
+
 
 ## Synthetic Data
 > [insert description of the synthetic pipeline here]

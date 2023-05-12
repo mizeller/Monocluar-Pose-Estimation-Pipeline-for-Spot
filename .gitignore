@@ -32,4 +32,6 @@ docs/source/examples/
 docs/source/*md
 blenderproc_resources/
 resources/texture_library
-spot/spot_robot_copy
+spot/spot_robot_simplified
+spot/synthetic_data
+.scratch

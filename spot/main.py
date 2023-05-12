@@ -1,104 +1,161 @@
-import blenderproc
-from pathlib import Path
+import blenderproc as bproc
+import numpy as np
+import mathutils
 import os
 
+
+# GLOBALS
+N_FRAMES: int = 2
+DBG: bool = False
+idx: int = 1  # 0 or 1, decide which scene to use
+
 # the following three lines are relevant for debugging
-import debugpy
+if DBG:
+    import debugpy
+    print("WARNING: Waiting for debugger Attach...")
+    debugpy.listen(5678)
+    debugpy.wait_for_client()
 
-debugpy.listen(5678)
-debugpy.wait_for_client()
+scenes = [
+    "resources/haven/hdris/abandoned_tiled_room/abandoned_tiled_room_2k.hdr",
+    "resources/haven/hdris/boiler_room/boiler_room_2k.hdr",
+]
 
-blenderproc.init()
+scene = scenes[idx]
 
-robot = blenderproc.loader.load_urdf(
-    urdf_file=Path("spot/spot_description/urdf/spot.urdf")
-)
+bproc.init()
+
+
+output_dir = f"spot/output/scene_{idx}"
+
+# set scene
+# TODO: add ground for robot to stand on
+bproc.world.set_world_background_hdr_img(scene)
+
+# set lighting source (location, energy level)
+light00 = bproc.types.Light()
+light00.set_type("POINT")
+light00.set_location([5, -5, 5])
+light00.set_energy(2000)
+
+light01 = bproc.types.Light()
+light01.set_type("POINT")
+light01.set_location([5, 5, 5])
+light01.set_energy(2000)
+
+light02 = bproc.types.Light()
+light02.set_type("POINT")
+light02.set_location([-5, 5, 5])
+light02.set_energy(2000)
+
+light03 = bproc.types.Light()
+light03.set_type("POINT")
+light03.set_location([-5, -5, 5])
+light03.set_energy(2000)
+
+# load robot
+# robot = bproc.loader.load_urdf(urdf_file="spot/spot_robot_simplified/spot.urdf")
+robot = bproc.loader.load_urdf(urdf_file="spot/spot_robot_simplified/spot_copy.urdf")
 
 robot.remove_link_by_index(index=0)
 robot.set_ascending_category_ids()
 
-# set material properties
-for link in robot.links:
-    if link.visuals:
-        for mat in link.visuals[0].get_materials():
-            if "mica" in link.get_name() and not "drive" in link.get_name():
-                if "distal" in link.get_name():
-                    mat.set_principled_shader_value("Roughness", 0.3)
-                    mat.set_principled_shader_value("Specular", 0.8)
-                    mat.set_principled_shader_value(
-                        "Base Color", [0.447, 0.3607, 0.3902, 1]
-                    )
-                    link.visuals[0].set_shading_mode("FLAT")
-                else:
-                    mat.set_principled_shader_value("Roughness", 0.1)
-                    mat.set_principled_shader_value("Metallic", 1.0)
-                    mat.set_principled_shader_value("Specular", 0.6)
-            else:
-                mat.set_principled_shader_value("Metallic", 0.3)
-                mat.set_principled_shader_value("Roughness", 0.4)
-                mat.set_principled_shader_value("Specular", 0.9)
+# # Scale 3D model from mm to m
+# robot.set_scale([0.001, 0.001, 0.001])
 
-# rotate every joint for 0.1 radians relative to the previous position
-robot.set_rotation_euler_fk(link=None, rotation_euler=0.2, mode="relative", frame=0)
-robot.set_rotation_euler_fk(link=None, rotation_euler=0.2, mode="relative", frame=1)
-robot.set_rotation_euler_fk(link=None, rotation_euler=0.2, mode="relative", frame=2)
+# body = robot.get_children()[2]
+# Set category id which will be used in the BopWriter
+# body.set_cp("category_id", 1)
 
-# rotate the fourth joint to its original position
-robot.set_rotation_euler_fk(
-    link=robot.links[4], rotation_euler=0.0, mode="absolute", frame=3
+# Find all materials
+# materials = bproc.material.collect_all()
+
+# analyse spot robot a bit
+# link_name_textures_list = [(link.get_name(), link.visuals) for link in robot.links]
+
+# set point of interest (all cam poses look towards it)
+poi = np.array([0.0, 0.0, 0.0])
+
+# Add translational random walk on top of the POI
+poi_drift = bproc.sampler.random_walk(
+    total_length=N_FRAMES,
+    dims=3,
+    step_magnitude=0.0005,
+    window_size=10,
+    interval=[-0.003, 0.003],
+    distribution="uniform",
 )
 
-# for moving to a specified 6d pose, first set up an inverse kinematic link at the end-effector
-# as relative location we put a small offset to the end effector
-# this allows us to later make it rotate around a point which could be a gripper
-robot.create_ik_bone_controller(link=robot.links[-1], relative_location=[0.0, 0.0, 0.2])
-robot.set_location_ik(location=[0.0, 0.0, 0.8], frame=4)
-robot.set_rotation_euler_ik(rotation_euler=[-1.57, 1.57, 0.0], mode="absolute", frame=4)
+# Rotational camera shaking as a random walk: Sample an axis angle representation
+camera_shaking_rot_angle = bproc.sampler.random_walk(
+    total_length=N_FRAMES,
+    dims=1,
+    step_magnitude=np.pi / 64,
+    window_size=10,
+    interval=[-np.pi / 12, np.pi / 12],
+    distribution="uniform",
+    order=2,
+)
+camera_shaking_rot_axis = bproc.sampler.random_walk(
+    total_length=N_FRAMES, dims=3, window_size=10, distribution="normal"
+)
+camera_shaking_rot_axis /= np.linalg.norm(
+    camera_shaking_rot_axis, axis=1, keepdims=True
+)
 
-# we can also check if the desired pose is reachable by the robot
-if robot.has_reached_ik_pose(location_error=0.01, rotation_error=0.01):
-    print("Robot has reached pose!")
-
-# rotate around the pose
-for i in range(5, 10):
-    robot.set_rotation_euler_ik(
-        rotation_euler=[0.0, 0.0, 0.4], mode="relative", frame=i
+for i in range(N_FRAMES):
+    # # Camera trajectory that defines a quater circle at constant height
+    location_cam = np.array(
+        [
+            3 * np.cos(i / N_FRAMES * 2 * np.pi),
+            5 * np.sin(i / N_FRAMES * 2 * np.pi),
+            1,
+        ]
     )
 
-# print current joint poses
-print("Current joint poses:", robot.get_all_local2world_mats())
-print("Current visual poses:", robot.get_all_visual_local2world_mats())
+    # Compute rotation based on vector going from location towards poi + drift
+    rotation_matrix = bproc.camera.rotation_from_forward_vec(
+        poi + poi_drift[i] - location_cam
+    )
+    # random walk axis-angle -> rotation matrix
+    R_rand = np.array(
+        mathutils.Matrix.Rotation(
+            camera_shaking_rot_angle[i], 3, camera_shaking_rot_axis[i]
+        )
+    )
 
-# set a light source
-light = blenderproc.types.Light()
-light.set_type(light_type="POINT")
-light.set_location(location=[5, 5, 5])
-light.set_energy(energy=1000)
+    # Add the random walk to the camera rotation
+    rotation_matrix = R_rand @ rotation_matrix
 
-# Set rendering parameters
-blenderproc.camera.set_resolution(640, 480)
-blenderproc.renderer.enable_depth_output(True)
-# sample camera pose
-location = [-1.0, 2.0, 2.0]
-poi = blenderproc.object.compute_poi(robot.links[4].get_visuals())
-# Compute rotation based on vector going from location towards poi
-rotation_matrix = blenderproc.camera.rotation_from_forward_vec(poi - location)
-# Add homog cam pose based on location and rotation
-cam2world_matrix = blenderproc.math.build_transformation_mat(location, rotation_matrix)
-blenderproc.camera.add_camera_pose(cam2world_matrix)
+    # Add homog cam pose based on location an rotation
+    cam2world_matrix = bproc.math.build_transformation_mat(
+        location_cam, rotation_matrix
+    )
+    bproc.camera.add_camera_pose(cam2world_matrix)
 
+# Set max samples for quick rendering
+bproc.renderer.set_max_amount_of_samples(100)
+
+# activate depth rendering
+bproc.renderer.enable_depth_output(True)
 # render segmentation images
-blenderproc.renderer.enable_segmentation_output(map_by=["instance", "name"])
+# bproc.renderer.enable_segmentation_output(map_by=["instance", "name"])
+# bproc.renderer.enable_normals_output()
 
-# render RGB images
-data = blenderproc.renderer.render()
+# render the whole pipeline
+data = bproc.renderer.render()
 
 # write the data to a .hdf5 container
-blenderproc.writer.write_hdf5(Path("spot/output"), data)
 
+bproc.writer.write_hdf5(f"{output_dir}/hdf5", data)
+
+# write the animations into .gif files
+bproc.writer.write_gif_animation(output_dir, data, frame_duration_in_ms=80)
+
+# save separate images
 # write link poses in BOP format
-blenderproc.writer.write_bop(
-    os.path.join(Path("spot/output"), "imgs"),
+bproc.writer.write_bop(
+    os.path.join(output_dir, "bop_data"),
     target_objects=robot.links,
     depths=data["depth"],
     colors=data["colors"],

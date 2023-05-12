@@ -192,14 +192,19 @@ class URDFObject(Entity):
         :return: Numpy array of shape (num_bones, 4, 4).
         """
         # TODO: figure out for which links, get_visual... returns None
-        array = [
-            link.get_visual_local2world_mats(Matrix(self.get_local2world_mat()))
-            for link in self.links
-        ]
-        array_filtered = [el for el in array if el is not None]
-        array_stacked = np.stack(array_filtered)
-        return array_stacked
-        # return np.stack([link.get_visual_local2world_mats(Matrix(self.get_local2world_mat())) for link in self.links])
+        # array = [
+        #     link.get_visual_local2world_mats(Matrix(self.get_local2world_mat()))
+        #     for link in self.links
+        # ]
+        # array_filtered = [el for el in array if el is not None]
+        # array_stacked = np.stack(array_filtered)
+        # return array_stacked
+        return np.stack(
+            [
+                link.get_visual_local2world_mats(Matrix(self.get_local2world_mat()))
+                for link in self.links
+            ]
+        )
 
     def get_all_collision_local2world_mats(self) -> np.array:
         """Returns all transformations from the world frame to the collision objects.

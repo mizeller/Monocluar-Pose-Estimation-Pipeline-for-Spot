@@ -1,61 +1,85 @@
 import blenderproc as bproc
+
+"""
+Synthetic data pipeline for Spot robot.
+The pipeline consists of the following steps:
+1.  define global parameters: N_FRAMES, DBG, idx, OUTPUT_DIR
+    (idx is either 0 or 1, depending on which scene to use)
+2.  initialize blenderproc
+3.  load & set scene
+4.  load & set lighting
+"""
+
 import numpy as np
 import mathutils
 import os
+from pathlib import Path
 
 
 # GLOBALS
 N_FRAMES: int = 2
-DBG: bool = False
-idx: int = 1  # 0 or 1, decide which scene to use
+DBG: bool = True
+scene_idx: int = 1  # 0 or 1, decide which scene to use
+OUTPUT_DIR: Path = Path(f"output/scene_{scene_idx}")
 
-# the following three lines are relevant for debugging
+
 if DBG:
     import debugpy
-    print("WARNING: Waiting for debugger Attach...")
+    import warnings
+
+    warnings.warn("Waiting for debugger Attach...", UserWarning)
     debugpy.listen(5678)
     debugpy.wait_for_client()
 
-scenes = [
-    "resources/haven/hdris/abandoned_tiled_room/abandoned_tiled_room_2k.hdr",
-    "resources/haven/hdris/boiler_room/boiler_room_2k.hdr",
-]
+scene_mapping = {
+    1: "resources/haven/hdris/abandoned_tiled_room/abandoned_tiled_room_2k.hdr",
+    2: "resources/haven/hdris/boiler_room/boiler_room_2k.hdr",
+}
 
-scene = scenes[idx]
+scene = scene_mapping[scene_idx]
+
 
 bproc.init()
 
 
-output_dir = f"spot/output/scene_{idx}"
+output_dir = f"spot/output/scene_{scene_idx}"
 
 # set scene
 # TODO: add ground for robot to stand on
 bproc.world.set_world_background_hdr_img(scene)
 
+
 # set lighting source (location, energy level)
-light00 = bproc.types.Light()
-light00.set_type("POINT")
-light00.set_location([5, -5, 5])
-light00.set_energy(2000)
+def set_lighting():
+    light00 = bproc.types.Light()
+    light00.set_type("POINT")
+    light00.set_location([5, -5, 5])
+    light00.set_energy(2000)
 
-light01 = bproc.types.Light()
-light01.set_type("POINT")
-light01.set_location([5, 5, 5])
-light01.set_energy(2000)
+    light01 = bproc.types.Light()
+    light01.set_type("POINT")
+    light01.set_location([5, 5, 5])
+    light01.set_energy(2000)
 
-light02 = bproc.types.Light()
-light02.set_type("POINT")
-light02.set_location([-5, 5, 5])
-light02.set_energy(2000)
+    light02 = bproc.types.Light()
+    light02.set_type("POINT")
+    light02.set_location([-5, 5, 5])
+    light02.set_energy(2000)
 
-light03 = bproc.types.Light()
-light03.set_type("POINT")
-light03.set_location([-5, -5, 5])
-light03.set_energy(2000)
+    light03 = bproc.types.Light()
+    light03.set_type("POINT")
+    light03.set_location([-5, -5, 5])
+    light03.set_energy(2000)
+
+
+set_lighting()
 
 # load robot
-# robot = bproc.loader.load_urdf(urdf_file="spot/spot_robot_simplified/spot.urdf")
-robot = bproc.loader.load_urdf(urdf_file="spot/spot_robot_simplified/spot_copy.urdf")
+# NOTE: I had to add the body twice, because the base link, i.e. the one w/o parent, had to be removed
+#       and the body was initially the base link...now it's the first child of the base link and everything works properly
+robot = bproc.loader.load_urdf(
+    urdf_file="spot/spot_robot_simplified/spot_simplified.urdf"
+)
 
 robot.remove_link_by_index(index=0)
 robot.set_ascending_category_ids()

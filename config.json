@@ -1,6 +1,7 @@
 {
-    "SCENE": 1,
+    "SCENE": 0,
     "DBG": 0,
-    "N_FRAMES": 100,
-    "DATA_DIR": "data"
+    "N_FRAMES": 1000,
+    "DATA_DIR": ".cache",
+    "RND_CAM": 1
 }

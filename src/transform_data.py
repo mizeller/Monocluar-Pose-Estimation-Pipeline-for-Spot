@@ -172,7 +172,7 @@ def main():
         "py": 0.0,
         "pz": 0.0,
         # bounding box dimensions in world coordinates
-        "ex": 0.8,
+        "ex": 0.85,
         "ey": 0.2,
         "ez": 0.2,
         # bounding box orientation in world coordinates (quaternion)

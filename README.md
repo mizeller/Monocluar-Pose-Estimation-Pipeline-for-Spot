@@ -1,5 +1,14 @@
 # 3DV Project - Synthetic Data Pipeline
-> Students: Mae Yamaguchi, Jonas Bohn, Christopher Tibaldo, Michel Zeller
+> **Students:** Mae Yamaguchi, Jonas Bohn, Christopher Tibaldo, Michel Zeller
+> **Supervisors:** ...
+
+## Usage
+To create some synthetic data, run the following command:
+```bash
+bash run.sh
+```
+
+
 
 ## Project Description
 In a multi-agent SLAM ... 

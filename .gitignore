@@ -9,3 +9,4 @@ blenderproc/external/vhacd
 spot/spot_robot_simplified
 spot/synthetic_data
 .scratch
+.cache/

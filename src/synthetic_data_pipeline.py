@@ -44,15 +44,15 @@ if DBG:
     debugpy.listen(5678)
     debugpy.wait_for_client()
 
-root: Path = Path("/Users/mizeller/projects/BlenderProc/resources/haven/hdris")
-scene_folder: Path = random.choice(list(root.iterdir()))
-scene: Path = list(scene_folder.iterdir())[0]
-assert scene.exists(), f"Scene {scene} does not exist"
 
 # 0. initialize blenderproc
 bproc.init()
 
 # 1.1 set scene
+root: Path = Path("/Users/mizeller/projects/BlenderProc/resources/haven/hdris")
+scene_folder: Path = random.choice(list(root.iterdir()))
+scene: Path = list(scene_folder.iterdir())[0]
+assert scene.exists(), f"Scene {scene} does not exist"
 if DBG:
     print(f"Placing SPOT in scene: {scene}")
 bproc.world.set_world_background_hdr_img(str(scene))

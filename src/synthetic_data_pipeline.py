@@ -58,7 +58,6 @@ if DBG:
 bproc.world.set_world_background_hdr_img(str(scene))
 
 
-
 # 2. load robot
 if MODEL == "nerf":
     # NOTE: robot from NeRF model
@@ -123,9 +122,14 @@ if RND_CAM:
 
 # 3.3 loop over frames // sample camera poses
 
-x_offset = random.uniform(1.0, 2.0)
-y_offset = random.uniform(1.0, 2.0)
-z_offset = random.uniform(1.0, 2.0)
+
+x_offset = 1.0
+y_offset = 1.0
+z_offset = 1.0
+if RND_CAM:
+    x_offset = random.uniform(0.5, 2.5)
+    y_offset = random.uniform(0.5, 2.0)
+    z_offset = random.uniform(0.5, 1.5)
 
 
 for i in range(N_FRAMES):

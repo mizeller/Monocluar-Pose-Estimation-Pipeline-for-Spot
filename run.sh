@@ -18,7 +18,6 @@ ANNOTATED_FRAMES="$DATA_DIR/scene_$SCENE/onepose_data/annotated_frames"
 ONEPOSE_DATA="$DATA_DIR/scene_$SCENE/onepose_data/"
 
 # create the animation gif
-
 convert -delay 2 -loop 0 "$ANNOTATED_FRAMES/*.png" "$ONEPOSE_DATA/synthetic_data_annotated.gif"
 
 # remove the separate frames again

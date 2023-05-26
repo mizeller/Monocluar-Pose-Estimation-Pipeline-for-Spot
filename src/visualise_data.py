@@ -22,25 +22,30 @@ def get_bbox3d():
     with open(box_file, "r") as f:
         lines = f.readlines()
     box_data = [float(e) for e in lines[1].strip().split(",")]
-    ex, ey, ez = box_data[3:6]
-    bbox_3d = (
-        np.array(
-            [
-                [-ex, -ey, -ez],  # back, left, down
-                [ex, -ey, -ez],  # front, left, down
-                [ex, -ey, ez],  # front, left, up
-                [-ex, -ey, ez],  # back, left, up
-                [-ex, ey, -ez],  # back, right, down
-                [ex, ey, -ez],  # front, right, down
-                [ex, ey, ez],  # front, right, up
-                [-ex, ey, ez],  # back, right, up
-            ]
-        )
-        * 0.5
-    )
-
     # add the center of the bounding box as well
     px, py, pz = box_data[:3]
+    ex, ey, ez = box_data[3:6]
+
+    # the dimensions corresond to the total depth, width and height of the box
+    # we need half of these values to get the correct coordinates w.r.t. the center
+    ex /= 2
+    ey /= 2
+    ez /= 2
+
+    bbox_3d = np.array(
+        [
+            [px - ex, py - ey, pz - ez],  # back, left, down
+            [px + ex, py - ey, pz - ez],  # front, left, down
+            [px + ex, py - ey, pz + ez],  # front, left, up
+            [px - ex, py - ey, pz + ez],  # back, left, up
+            [px - ex, py + ey, pz - ez],  # back, right, down
+            [px + ex, py + ey, pz - ez],  # front, right, down
+            [px + ex, py + ey, pz + ez],  # front, right, up
+            [px - ex, py + ey, pz + ez],  # back, right, up
+        ]
+    )
+
+    # add the center of the bounding box as well for visualisation purposes
     bbox_3d = np.insert(bbox_3d, 8, [px, py, pz], axis=0)
     bbox_3d_homo = np.concatenate([bbox_3d, np.ones((len(bbox_3d), 1))], axis=1)
 
@@ -72,14 +77,38 @@ def reproj(K_homo, pose, points3d_homo):
 
 
 def draw_box3d(reproj_box3d, image):
-    back_left_bottom = (int(reproj_box3d[0][0]), int(int(reproj_box3d[0][1])))
-    back_right_bottom = (int(reproj_box3d[1][0]), int(int(reproj_box3d[1][1])))
-    front_right_bottom = (int(reproj_box3d[2][0]), int(int(reproj_box3d[2][1])))
-    front_left_bottom = (int(reproj_box3d[3][0]), int(int(reproj_box3d[3][1])))
-    back_left_top = (int(reproj_box3d[4][0]), int(int(reproj_box3d[4][1])))
-    back_right_top = (int(reproj_box3d[5][0]), int(int(reproj_box3d[5][1])))
-    front_right_top = (int(reproj_box3d[6][0]), int(int(reproj_box3d[6][1])))
-    front_left_top = (int(reproj_box3d[7][0]), int(int(reproj_box3d[7][1])))
+    back_left_bottom = (
+        int(reproj_box3d[0][0]),
+        int(reproj_box3d[0][1]),
+    )
+    back_right_bottom = (
+        int(reproj_box3d[1][0]),
+        int(reproj_box3d[1][1]),
+    )
+    front_right_bottom = (
+        int(reproj_box3d[2][0]),
+        int(reproj_box3d[2][1]),
+    )
+    front_left_bottom = (
+        int(reproj_box3d[3][0]),
+        int(reproj_box3d[3][1]),
+    )
+    back_left_top = (
+        int(reproj_box3d[4][0]),
+        int(reproj_box3d[4][1]),
+    )
+    back_right_top = (
+        int(reproj_box3d[5][0]),
+        int(reproj_box3d[5][1]),
+    )
+    front_right_top = (
+        int(reproj_box3d[6][0]),
+        int(reproj_box3d[6][1]),
+    )
+    front_left_top = (
+        int(reproj_box3d[7][0]),
+        int(reproj_box3d[7][1]),
+    )
 
     # center = (int(reproj_box3d[8][0]), int(int(reproj_box3d[8][1])))
     # # DBG: visualise separate corners first, then draw the lines
@@ -184,6 +213,9 @@ def main():
         image = cv2.imread(str(image_file))
 
         get_points(image, frame)
+
+        if DBG:
+            print(f"Saving annotated frame to {output_path}/{str(frame).zfill(6)}.png")
 
         cv2.imwrite(
             str(output_path) + "/" + str(frame).zfill(6) + ".png",

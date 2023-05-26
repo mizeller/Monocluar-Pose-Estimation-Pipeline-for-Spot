@@ -1,7 +1,8 @@
 {
-    "SCENE": 0,
+    "SCENE": "00",
     "DBG": 0,
-    "N_FRAMES": 1000,
-    "DATA_DIR": ".cache",
-    "RND_CAM": 1
+    "N_FRAMES": 100,
+    "DATA_DIR": "synthetic_data_new",
+    "RND_CAM": 1,
+    "MODEL": "nerf"
 }

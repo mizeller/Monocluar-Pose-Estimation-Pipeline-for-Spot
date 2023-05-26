@@ -6,6 +6,7 @@ import mathutils
 import os
 from pathlib import Path
 import json
+import random
 
 ######################## GLOBALS ########################
 CONFIG = Path("config.json")
@@ -16,6 +17,8 @@ RND_CAM = bool(configs.get("RND_CAM", 0))
 N_FRAMES = configs.get("N_FRAMES", 1)
 DATA_DIR: Path = Path(configs.get("DATA_DIR", "data"))
 OUTPUT_DIR: Path = DATA_DIR / f"scene_{SCENE}"
+MODEL: str = configs.get("MODEL", "nerf")
+assert MODEL in ["nerf", "urdf"], "MODEL must be either 'nerf' or 'urdf'"
 #########################################################
 
 ######################## DESCRIPTION ####################
@@ -41,61 +44,46 @@ if DBG:
     debugpy.listen(5678)
     debugpy.wait_for_client()
 
-scene_mapping = {
-    0: "resources/haven/hdris/abandoned_tiled_room/abandoned_tiled_room_2k.hdr",
-    1: "resources/haven/hdris/boiler_room/boiler_room_2k.hdr",
-}
-
-scene = scene_mapping[SCENE]
+root: Path = Path("/Users/mizeller/projects/BlenderProc/resources/haven/hdris")
+scene_folder: Path = random.choice(list(root.iterdir()))
+scene: Path = list(scene_folder.iterdir())[0]
+assert scene.exists(), f"Scene {scene} does not exist"
 
 # 0. initialize blenderproc
 bproc.init()
 
 # 1.1 set scene
-# TODO: (optionally) add ground for robot to stand on
-bproc.world.set_world_background_hdr_img(scene)
+if DBG:
+    print(f"Placing SPOT in scene: {scene}")
+bproc.world.set_world_background_hdr_img(str(scene))
 
-# create room
-ground = bproc.object.create_primitive(
-    "PLANE", scale=[1, 1, 1], location=[0, 0, -0.65]
-).enable_rigidbody(active=False)
 
-# 1.2 set lighting source (location, energy level)
-light00 = bproc.types.Light()
-light00.set_type("POINT")
-light00.set_location([5, -5, 5])
-light00.set_energy(2000)
-
-light01 = bproc.types.Light()
-light01.set_type("POINT")
-light01.set_location([5, 5, 5])
-light01.set_energy(2000)
-
-light02 = bproc.types.Light()
-light02.set_type("POINT")
-light02.set_location([-5, 5, 5])
-light02.set_energy(2000)
-
-light03 = bproc.types.Light()
-light03.set_type("POINT")
-light03.set_location([-5, -5, 5])
-light03.set_energy(2000)
 
 # 2. load robot
-# NOTE: the urdf contains spot's body twice, because the base link, i.e. the one w/o parent, has to be removed.
-#       now it's the first child of the base link and everything works properly
-robot = bproc.loader.load_urdf(
-    urdf_file="spot/spot_robot_simplified/spot_simplified.urdf"
-)
-robot.remove_link_by_index(index=0)
-robot.set_ascending_category_ids()
+if MODEL == "nerf":
+    # NOTE: robot from NeRF model
+    robot = bproc.loader.load_obj(filepath="spot/nerf/nerf_spot.dae")
+    robot = robot[0]
+    # Set pose of object via local-to-world transformation matrix
+    robot.set_local2world_mat(
+        [
+            [1, 0, 0, 0],
+            [0, 1, 0, 0],
+            [0, 0, 1, 0],
+            [0, 0, 0, 1],
+        ]
+    )
+    # Set category id which will be used in the BopWriter
+    robot.set_cp("category_id", 1)
 
-# 2.1 analyse loaded robot a bit // textures!?
-# # Scale 3D model from mm to m
-# robot.set_scale([0.001, 0.001, 0.001])
-# # Find all materials
-# materials = bproc.material.collect_all()
-# link_name_textures_list = [(link.get_name(), link.visuals) for link in robot.links]
+elif MODEL == "urdf":
+    # NOTE: the urdf contains spot's body twice, because the base link, i.e. the one w/o parent, has to be removed.
+    #       now it's the first child of the base link and everything works properly
+    # NOTE: robot w/o arm
+    robot = bproc.loader.load_urdf(urdf_file="spot/spot_basic.urdf")
+    robot.remove_link_by_index(index=0)
+    robot.set_ascending_category_ids()
+
 
 # 3. set camera properties
 # 3.1 set point of interest (all cam poses look towards it)
@@ -134,14 +122,18 @@ if RND_CAM:
     )
 
 # 3.3 loop over frames // sample camera poses
+
+x_offset = random.uniform(1.0, 2.0)
+y_offset = random.uniform(1.0, 2.0)
+z_offset = random.uniform(1.0, 2.0)
+
+
 for i in range(N_FRAMES):
     # TODO: fix initial position of camera
 
-    x = 1.5 * np.sin(i / (1 * N_FRAMES) * 2 * np.pi)
-    y = 2.5 * np.cos(i / (1 * N_FRAMES) * 2 * np.pi)
-    z = 1.5
-
-    print(f"x: {x:02f},\ty: {y:02f}")
+    x = x_offset * np.sin(i / (1 * N_FRAMES) * 2 * np.pi)
+    y = y_offset * np.cos(i / (1 * N_FRAMES) * 2 * np.pi)
+    z = z_offset
 
     # Camera trajectory that defines a quater circle at constant height
     location_cam = np.array([x, y, z])
@@ -182,12 +174,24 @@ bproc.renderer.enable_depth_output(True)
 # render the whole pipeline
 data = bproc.renderer.render()
 
+# bproc.writer.write_gif_animation(OUTPUT_DIR, data)
 # save output in standard bop format
-bproc.writer.write_bop(
-    os.path.join(OUTPUT_DIR, "bop_data"),
-    target_objects=robot.links,
-    depths=data["depth"],
-    colors=data["colors"],
-    m2mm=False,
-    calc_mask_info_coco=False,
-)
+
+if MODEL == "nerf":
+    bproc.writer.write_bop(
+        os.path.join(OUTPUT_DIR, "bop_data"),
+        target_objects=[robot],
+        depths=data["depth"],
+        colors=data["colors"],
+        m2mm=False,
+        calc_mask_info_coco=False,
+    )
+elif MODEL == "urdf":
+    bproc.writer.write_bop(
+        os.path.join(OUTPUT_DIR, "bop_data"),
+        target_objects=robot.links,
+        depths=data["depth"],
+        colors=data["colors"],
+        m2mm=False,
+        calc_mask_info_coco=False,
+    )

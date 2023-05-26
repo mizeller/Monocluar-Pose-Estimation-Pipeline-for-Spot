@@ -18,6 +18,8 @@ N_FRAMES = configs.get("N_FRAMES", 1)
 DATA_DIR: Path = Path(configs.get("DATA_DIR", "data"))
 BOP_DATA: Path = DATA_DIR / f"scene_{SCENE}/bop_data"
 ONEPOSE_DATA: Path = DATA_DIR / f"scene_{SCENE}/onepose_data"
+MODEL: str = configs.get("MODEL", "nerf")
+assert MODEL in ["nerf", "urdf"], "MODEL must be either 'nerf' or 'urdf'"
 #########################################################
 
 
@@ -166,21 +168,40 @@ def main():
     # it contains the pose of the (constant) 3D bounding box of the object we want to train
     # OnePose++ for. It can be extracted directly from blender.
     # TODO: modify these values if necessary
-    bbox_properties = {
-        # bounding box center coordinates in world coordinates
-        "px": 0.0,
-        "py": 0.0,
-        "pz": 0.0,
-        # bounding box dimensions in world coordinates
-        "ex": 0.85,
-        "ey": 0.2,
-        "ez": 0.2,
-        # bounding box orientation in world coordinates (quaternion)
-        "qw": 0.0,
-        "qx": 0.2,
-        "qy": 0.0,
-        "qz": 0.0,
-    }
+
+    if MODEL == "nerf":
+        bbox_properties = {
+            # bounding box center coordinates in world coordinates
+            "px": 0.05,  # urdf spot: 0.0,
+            "py": 0.05,  # urdf spot: 0.0,
+            "pz": 0.05,  # urdf spot: 0.0,
+            # bounding box dimensions in world coordinates
+            "ex": 0.2,  # urdf spot: 0.85,
+            "ey": 0.82,  # urdf spot: 0.2,
+            "ez": 0.32,  # urdf spot: 0.2,
+            # bounding box orientation in world coordinates (quaternion)
+            "qw": 0.0,
+            "qx": 0.2,
+            "qy": 0.0,
+            "qz": 0.0,
+        }
+    elif MODEL == "urdf":
+        bbox_properties = {
+            # bounding box center coordinates in world coordinates
+            "px": 0.0,
+            "py": 0.0,
+            "pz": 0.0,
+            # bounding box dimensions in world coordinates
+            "ex": 0.85,
+            "ey": 0.2,
+            "ez": 0.2,
+            # bounding box orientation in world coordinates (quaternion)
+            "qw": 0.0,
+            "qx": 0.2,
+            "qy": 0.0,
+            "qz": 0.0,
+        }
+
     get_box_txt(bbox_properties=bbox_properties)
 
     # 2. add FRAMES.txt file to the output directory. it contains the camera intrinsics for each frame

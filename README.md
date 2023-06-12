@@ -1,5 +1,14 @@
 # 3DV Project - Monocular Pose Estimation for Human-Robot Co-Localization
 
+## Project Description
+
+### Main Contributions
+- **Accurate NeRF model of Spot**
+- **Modular Synthetic data pipeline for any robot/object using BlenderProc**
+- **First Dataset of Spot in BOP format to train Pose Estimation Algorithms for Spot** (~ 2000 frames)
+- **Conversion Scripts from BOP to slightly modified OnePose++ data**
+
+
 ## Installation
 This project is quite modular and combines different pipelines/algorithms. Since these pipelines are very well documented, please follow the installation instructions of the respective projects.
 

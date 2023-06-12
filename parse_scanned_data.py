@@ -203,23 +203,17 @@ def data_process_anno(data_dir, downsample_rate=1, hw=512):
         for line in tqdm.tqdm(lines):
             if len(line) == 0 or line[0] == '#':
                 continue
-
+                
             if index % downsample_rate == 0:
                 eles = line.split(',')
                 data = [float(e) for e in eles]
-
                 position = data[1:4]
-                quaternion = data[4:]
-                rot_mat = quaternions.quat2mat(quaternion)
-                rot_mat = rot_mat @ np.array([
-                    [1,  0,  0],
-                    [0, -1,  0],
-                    [0,  0, -1]
-                ])
-
-                T_ow = parse_box(paths['box_path'])
-                T_cw = affines.compose(position, rot_mat, np.ones(3))
-                T_wc = np.linalg.inv(T_cw)
+                rot_mat = np.array(data[4:]).reshape(3, 3)
+                T_wc = affines.compose(position, rot_mat, np.ones(3))
+                T_ow = np.array([[1,0,0,0],
+                                 [0,1,0,0],
+                                 [0,0,1,0],
+                                 [0,0,0,1]])
                 T_oc = T_wc @ T_ow
                 pose_save_path = osp.join(paths['out_pose_dir'], '{}.txt'.format(index))
                 box_save_path = osp.join(paths['reproj_box_dir'], '{}.txt'.format(index))

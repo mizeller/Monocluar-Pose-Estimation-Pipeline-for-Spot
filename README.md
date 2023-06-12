@@ -1,6 +1,24 @@
 # 3DV Project - Synthetic Data Pipeline
 > **Students:** Mae Yamaguchi, Jonas Bohn, Christopher Tibaldo, Michel Zeller
+> 
 > **Supervisors:** ...
+
+
+## Installation
+This project is quite modular and combines different pipelines/algorithms. Since these pipelines are very well documented, please follow the installation instructions of the respective projects.
+
+
+### BlenderProc2
+Blenderproc is required to create synthetic data. The installation instructions can be found [here](https://dlr-rm.github.io/BlenderProc/).
+For this project, we additionally installed all HDRIs from polyhaven.com using `blenderproc download haven`.
+
+### OnePose++
+To install OnePose++, please follow the instructions from their ReadMe.
+
+
+### Maplab
+
+
 
 ## Usage
 To create some synthetic data, run the following command:

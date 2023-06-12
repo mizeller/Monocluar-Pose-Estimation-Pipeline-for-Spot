@@ -50,6 +50,8 @@ bproc.init()
 
 # 1.1 set scene
 root: Path = Path("/Users/mizeller/projects/BlenderProc/resources/haven/hdris")
+# TODO: use blenderproc.python.loader.HavenEnvironmentLoader module instead of this
+# random.choice implementation to get a random scene
 scene_folder: Path = random.choice(list(root.iterdir()))
 scene: Path = list(scene_folder.iterdir())[0]
 assert scene.exists(), f"Scene {scene} does not exist"

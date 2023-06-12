@@ -106,14 +106,14 @@ conda env create -f environment.yaml
     ```
     |--- /path/to/OnePose_Plus_Plus_Spot/data/demo
     |       |--- Spot
-    |       |       |---Spot-annotate
+    |       |       |---Spot-annotate # Synthetic data created using BlenderProc
                           |--- Frames.m4v
                           |--- ARposes.txt
                           |--- Box.txt
                           |--- Frames.txt
                           |--- intrinsics.txt
                           |--- (synthetic_data_annotated.gif)
-    |       |       |---Spot-test
+    |       |       |---Spot-test # Real World data captured from Hololens
                           |--- Frames.m4v
                           |--- Frames.txt
     ```

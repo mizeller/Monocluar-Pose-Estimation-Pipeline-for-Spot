@@ -95,7 +95,7 @@ The config.json file contains all the parameters for the BlenderProc pipeline. I
 ```
 ## Implementing OnePose++
 Primarily, we adhered to the instructions provided by the authors of OnePose++ [here](https://github.com/Maemaemaeko/OnePose_Plus_Plus_Spot/blob/main/doc/demo.md).
-### Step 1 : Set up a conda environment for OnePose++
+### Step 1: Set up a conda environment for OnePose++
 After executing the following commands, a new conda environment named "oneposeplus" should be created.
 ```shell
 cd /path/to/OnePose_Plus_Plus_Spot

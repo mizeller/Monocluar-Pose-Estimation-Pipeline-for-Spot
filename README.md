@@ -1,14 +1,12 @@
 # 3DV Project - Monocular Pose Estimation for Human-Robot Co-Localization
 
 ## Project Description
+
+
 ![](img/all_in_one.jpeg) 
 
 
-![](name-of-gif-file.gif)
-
-
-
-
+This repository contains the code for the 3D vision project. Specifially it contains a pipeline to train a pose estimation algorithm of Boston Dynamics' Spot with OnePose++ as well as to create synthetic data for it, using BlenderProc2.
 
 ### Main Contributions
 - **Accurate NeRF model of Spot** (see [Spot_NeRF](spot/nerf/nerf_spot.dae)) (created using [PolyCam](https://poly.cam))

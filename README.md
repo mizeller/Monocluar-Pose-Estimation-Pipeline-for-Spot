@@ -2,10 +2,17 @@
 
 ## Project Description
 
+
+![asdfasdf](img/all_in_one.jpeg) 
+
+![](name-of-gif-file.gif)
+
+
 ### Main Contributions
 - **Accurate NeRF model of Spot**
 - **Modular Synthetic data pipeline for any robot/object using BlenderProc**
-- **First Dataset of Spot in BOP format to train Pose Estimation Algorithms for Spot** (~ 2000 frames)
+- **First Dataset of Spot in BOP format to train Pose Estimation Algorithms for Spot** (~ 4000 frames)
+  - The dataset can be downloaded [here](https://drive.google.com/drive/folders/1x7ZgAye9rGezCU0lczo5oUDe5kdprsVc?usp=sharing)
 - **Conversion Scripts from BOP to slightly modified OnePose++ data**
 
 

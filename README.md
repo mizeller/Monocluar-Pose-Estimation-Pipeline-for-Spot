@@ -79,6 +79,7 @@ We derived the Box.txt parameters by visually inspectinb the robot model in the 
     └── synthetic_data_annotated.gif
 ```
 
+
 ### config.json
 The config.json file contains all the parameters for the BlenderProc pipeline. It can be found in the root folder. The most important parameters are the following:
 
@@ -91,6 +92,36 @@ The config.json file contains all the parameters for the BlenderProc pipeline. I
     "RND_CAM": 1,                       // wheter the camera should move randomly
     "MODEL": "nerf"                     // which model to use, NeRF or URDF from https://github.com/heuristicus/spot_ros
 }
+```
+## Implement OnePose++
+Primarily, we adhered to the instructions provided by the authors of OnePose++ [here](https://github.com/Maemaemaeko/OnePose_Plus_Plus_Spot/blob/main/doc/demo.md).
+### Step 1 : Set up conda environment for OnePose++
+After executing the following commands, a new conda environment named "oneposeplus" should be created.
+```shell
+cd /path/to/OnePose_Plus_Plus_Spot
+conda env create -f environment.yaml
+```
+
+### Step 2: Organize the data as the follow structure:
+    ```
+    |--- /path/to/OnePose_Plus_Plus_Spot/data/demo
+    |       |--- Spot
+    |       |       |---Spot-annotate
+                          |--- Frames.m4v
+                          |--- ARposes.txt
+                          |--- Box.txt
+                          |--- Frames.txt
+                          |--- intrinsics.txt
+                          |--- (synthetic_data_annotated.gif)
+    |       |       |---Spot-test
+                          |--- Frames.m4v
+    ```
+    
+### Step 3: Run OnePose with collected data
+Execute the following commands, and a demo video naming `demo_video.mp4` will be saved in the folder of the test sequence.
+```shell
+conda activate oneposeplus 
+bash /path/to/OnePose_Plus_Plus_Spot/scripts/demo_pipeline.sh Spot
 ```
 
 ## Projecting Real World data to Hololens Camera frame

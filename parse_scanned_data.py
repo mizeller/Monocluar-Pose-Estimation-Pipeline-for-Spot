@@ -83,25 +83,31 @@ def get_test_default_path(data_dir):
 
     return paths
 
-
 def get_bbox3d(box_path):
     assert Path(box_path).exists()
     with open(box_path, 'r') as f:
         lines = f.readlines()
     box_data = [float(e) for e in lines[1].strip().split(',')]
-    ex, ey, ez = box_data[3: 6]
-    bbox_3d = np.array([
-        [-ex, -ey, -ez],
-        [ex,  -ey, -ez],
-        [ex,  -ey, ez],
-        [-ex, -ey, ez],
-        [-ex,  ey, -ez],
-        [ ex,  ey, -ez],
-        [ ex,  ey, ez],
-        [-ex,  ey, ez]
-    ]) * 0.5
+    px, py, pz = box_data[:3]
+    ex, ey, ez = box_data[3:6]
+    ex /= 2
+    ey /= 2
+    ez /= 2
+    bbox_3d = np.array(
+        [
+            [px - ex, py - ey, pz - ez],  # back, left, down
+            [px + ex, py - ey, pz - ez],  # front, left, down
+            [px + ex, py - ey, pz + ez],  # front, left, up
+            [px - ex, py - ey, pz + ez],  # back, left, up
+            [px - ex, py + ey, pz - ez],  # back, right, down
+            [px + ex, py + ey, pz - ez],  # front, right, down
+            [px + ex, py + ey, pz + ez],  # front, right, up
+            [px - ex, py + ey, pz + ez],  # back, right, up
+        ]
+    )
     bbox_3d_homo = np.concatenate([bbox_3d, np.ones((8, 1))], axis=1)
     return bbox_3d, bbox_3d_homo
+
 def parse_box(box_path):
     with open(box_path, 'r') as f:
         lines = f.readlines()

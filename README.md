@@ -1,8 +1,4 @@
-# 3DV Project - Synthetic Data Pipeline
-> **Students:** Mae Yamaguchi, Jonas Bohn, Christopher Tibaldo, Michel Zeller
-> 
-> **Supervisors:** ...
-
+# 3DV Project - Monocular Pose Estimation for Human-Robot Co-Localization
 
 ## Installation
 This project is quite modular and combines different pipelines/algorithms. Since these pipelines are very well documented, please follow the installation instructions of the respective projects.
@@ -13,11 +9,11 @@ Blenderproc is required to create synthetic data. The installation instructions 
 For this project, we additionally installed all HDRIs from polyhaven.com using `blenderproc download haven`.
 
 ### OnePose++
-To install OnePose++, please follow the instructions from their ReadMe.
+To install OnePose++, please follow the instructions from their ReadMe. We forked their repository and added some additional changes to make it compatible with our conversion scripts from BOP to their custom dataformat. The forked repository can be found [here](https://github.com/Maemaemaeko/OnePose_Plus_Plus_Spot) if the specific commits are of interest.
 
 
 ### Maplab
-
+Maybe less important for this project, but still of interest for the robotics community, we tried used Maplab to generate the ground truth poses for the synthetic data. The installation instructions can be found [here](https://maplab.asl.ethz.ch/docs/master/index.html). Of course, this requires the user to have an environment with the different robots/agents/... . 
 
 
 ## Usage

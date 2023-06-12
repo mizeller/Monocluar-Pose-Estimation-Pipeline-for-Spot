@@ -93,9 +93,9 @@ The config.json file contains all the parameters for the BlenderProc pipeline. I
     "MODEL": "nerf"                     // which model to use, NeRF or URDF from https://github.com/heuristicus/spot_ros
 }
 ```
-## Implement OnePose++
+## Implementing OnePose++
 Primarily, we adhered to the instructions provided by the authors of OnePose++ [here](https://github.com/Maemaemaeko/OnePose_Plus_Plus_Spot/blob/main/doc/demo.md).
-### Step 1 : Set up conda environment for OnePose++
+### Step 1 : Set up a conda environment for OnePose++
 After executing the following commands, a new conda environment named "oneposeplus" should be created.
 ```shell
 cd /path/to/OnePose_Plus_Plus_Spot
@@ -115,6 +115,7 @@ conda env create -f environment.yaml
                           |--- (synthetic_data_annotated.gif)
     |       |       |---Spot-test
                           |--- Frames.m4v
+                          |--- Frames.txt
     ```
     
 ### Step 3: Run OnePose with collected data

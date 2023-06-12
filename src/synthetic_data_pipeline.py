@@ -14,7 +14,7 @@ configs = json.load(open(CONFIG))
 SCENE = configs.get("SCENE", 1)
 DBG = bool(configs.get("DBG", 0))
 RND_CAM = bool(configs.get("RND_CAM", 0))
-N_FRAMES = configs.get("N_FRAMES", 1)
+N_FRAMES = int(configs.get("N_FRAMES", 1))
 DATA_DIR: Path = Path(configs.get("DATA_DIR", "data"))
 OUTPUT_DIR: Path = DATA_DIR / f"scene_{SCENE}"
 MODEL: str = configs.get("MODEL", "nerf")
@@ -121,20 +121,30 @@ if RND_CAM:
     )
 
 # 3.3 loop over frames // sample camera poses
-
-
 x_offset = 1.0
 y_offset = 1.0
 z_offset = 1.0
+# random initial position of camera
 if RND_CAM:
     x_offset = random.uniform(0.5, 2.5)
     y_offset = random.uniform(0.5, 2.0)
     z_offset = random.uniform(0.5, 1.5)
 
+"""
+for i in range(N_FRAMES):
+    # Sample random camera location above objects
+    location = np.random.uniform([-5, -5, 0], [3, 3, 3])
+    # Compute rotation based on vector going from location towards poi
+    rotation_matrix = bproc.camera.rotation_from_forward_vec(
+        poi - location, inplane_rot=np.random.uniform(-0.7854, 0.7854)
+    )
+    # Add homog cam pose based on location an rotation
+    cam2world_matrix = bproc.math.build_transformation_mat(location, rotation_matrix)
+    bproc.camera.add_camera_pose(cam2world_matrix)
+"""
+
 
 for i in range(N_FRAMES):
-    # TODO: fix initial position of camera
-
     x = x_offset * np.sin(i / (1 * N_FRAMES) * 2 * np.pi)
     y = y_offset * np.cos(i / (1 * N_FRAMES) * 2 * np.pi)
     z = z_offset

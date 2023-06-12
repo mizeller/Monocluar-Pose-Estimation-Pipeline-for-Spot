@@ -94,15 +94,9 @@ The config.json file contains all the parameters for the BlenderProc pipeline. I
 }
 ```
 ## Implementing OnePose++
-Primarily, we adhered to the instructions provided by the authors of OnePose++ [here](https://github.com/Maemaemaeko/OnePose_Plus_Plus_Spot/blob/main/doc/demo.md).
-### Step 1: Set up a conda environment for OnePose++
-After executing the following commands, a new conda environment named "oneposeplus" should be created.
-```shell
-cd /path/to/OnePose_Plus_Plus_Spot
-conda env create -f environment.yaml
-```
+Primarily, we adhered to the instructions provided by the authors of OnePose++ [here](https://github.com/Maemaemaeko/OnePose_Plus_Plus_Spot/blob/main/doc/demo.md). Ensure that you have already set up an environment for OnePose++ following their [ReadMe](https://github.com/Maemaemaeko/OnePose_Plus_Plus_Spot/blob/main/README.md)
 
-### Step 2: Organize the data as the follow structure:
+### Step 1: Organize the data as the follow structure:
     ```
     |--- /path/to/OnePose_Plus_Plus_Spot/data/demo
     |       |--- Spot
@@ -118,7 +112,7 @@ conda env create -f environment.yaml
                           |--- Frames.txt
     ```
     
-### Step 3: Run OnePose with collected data
+### Step 2: Run OnePose with collected data
 Execute the following commands, and a demo video naming `demo_video.mp4` will be saved in the folder of the test sequence.
 ```shell
 conda activate oneposeplus 

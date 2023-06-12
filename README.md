@@ -1,15 +1,17 @@
 # 3DV Project - Monocular Pose Estimation for Human-Robot Co-Localization
 
 ## Project Description
+![](img/all_in_one.jpeg) 
 
-
-![asdfasdf](img/all_in_one.jpeg) 
 
 ![](name-of-gif-file.gif)
 
 
+
+
+
 ### Main Contributions
-- **Accurate NeRF model of Spot**
+- **Accurate NeRF model of Spot** (see [Spot_NeRF](spot/nerf/nerf_spot.dae)) (created using [PolyCam](https://poly.cam))
 - **Modular Synthetic data pipeline for any robot/object using BlenderProc**
 - **First Dataset of Spot in BOP format to train Pose Estimation Algorithms for Spot** (~ 4000 frames)
   - The dataset can be downloaded [here](https://drive.google.com/drive/folders/1x7ZgAye9rGezCU0lczo5oUDe5kdprsVc?usp=sharing)
@@ -33,24 +35,75 @@ Maybe less important for this project, but still of interest for the robotics co
 
 
 ## Usage
-To create some synthetic data, run the following command:
+To quickly create synthetic data, we created a bash script which can be found in the `scripts` folder. It can be run with the following command:
 ```bash
 bash run.sh
 ```
 
+First it runs the BlenderProc pipeline `blenderproc run src/synthetic_data_pipeline.py`. Next, the conversion scripts convert the BOP output data to our own 'custom' OnePose++ data. To have minimal changes in the OnePose++ code-base, and following the suggestions of the authors, we only changed a few lines in these two methods: `get_bbox3d()` and `data_process_anno()`, both in [parse_scanned_data.py](OnePose_Plus_Plus_Spot/parse_scanned_data.py)   
 
+```
+.
+├── demo_cam-annotate
+│   ├── 0.png
+│   ├── ARposes.txt
+│   ├── Box.txt
+│   ├── Confidence
+│   ├── Depth
+│   ├── Frames.m4v
+│   ├── Frames.txt
+│   ├── Snapshot.png
+│   └── intrinsics.txt
+└── ...
+```
 
-## Project Description
-In a multi-agent SLAM ... 
+The conversion scripts create the onepose_data directory, which can directly be used for training our modified OnePose++ algorihtm. After further processing, it should be possible to convert the BOP data directly to the OnePose++ data format. However, the OnePose++ data requires a `Box.txt` file, which we could not create from the BOP data.
 
+We derived the Box.txt parameters by visually inspectinb the robot model in the world frame in Blender. We think, our data format is more accessible, albeit less robust, because it uses regular rotation matrices insted of quaternions.
 
-## Synthetic Data
-> [insert description of the synthetic pipeline here]
+```
+.
+├── bop_data
+│   ├── camera.json
+│   └── train_pbr
+│       └── 000000
+│           ├── depth
+│           │   ├── 000000.png
+...
+│           │   └── 000099.png
+│           ├── scene_camera.json
+│           └── scene_gt.json
+└── onepose_data
+    ├── ARposes.txt
+    ├── Box.txt
+    ├── Frames.txt
+    ├── intrinsics.txt
+    └── synthetic_data_annotated.gif
+```
 
+### config.json
+The config.json file contains all the parameters for the BlenderProc pipeline. It can be found in the root folder. The most important parameters are the following:
 
-1. used spot CAD model and URDF file from [this](https://github.com/chvmp/spot_ros/tree/gazebo/spot_description) repo
-2. ...
-3. ...
+```json
+{
+    "DATA_DIR": "synthetic_data_new",   // where to store the data
+    "SCENE": "00",                      // sub directory of DATA_DIR
+    "DBG": 0,                           // wheter to use the debugger in BlenderProc, enables for visual inspection of the scene
+    "N_FRAMES": 100,                    // how many frames to render
+    "RND_CAM": 1,                       // wheter the camera should move randomly
+    "MODEL": "nerf"                     // which model to use, NeRF or URDF from https://github.com/heuristicus/spot_ros
+}
+```
 
 ## Projecting Real World data to Hololens Camera frame
-The world_to_camera_projection.ipynb Contains the code with which we attempted to project the SPOT position into the Hololens camera frame. To run it requires a .bag recording of the Hololens and Spot robots, as well as a vertex_poses_velocities_biases.csv containing the positions and orientations of Hololens and SPOt in world coordinate frame, generated with MapLab
+The world_to_camera_projection.ipynb contains the code with which we attempted to project the Spot position into the HoloLens camera frame. To run it requires a .bag recording of the Hololens and Spot robots, as well as a vertex_poses_velocities_biases.csv containing the positions and orientations of HoloLens and Spot in world coordinate frame, generated with MapLab
+
+
+
+## TODO
+
+- [ ] create more robust synthetic training data
+- [ ] create a better robot model after the NeRF model, which can be controlled
+- [ ] add different lighting conditions to the synthetic data
+- [ ] add occlusions to the synthetic data
+- [ ] change conversion scripts, to use OnePose directly

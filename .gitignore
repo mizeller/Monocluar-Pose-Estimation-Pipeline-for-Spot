@@ -2,11 +2,8 @@ __pycache__
 */__pycache__
 blenderproc.egg-info/
 .vscode/
-output/
 data/
 resources/
 blenderproc/external/vhacd
-spot/spot_robot_simplified
-spot/synthetic_data
 .scratch
 .cache/

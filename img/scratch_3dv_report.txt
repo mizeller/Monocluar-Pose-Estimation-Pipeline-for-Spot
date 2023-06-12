@@ -1,0 +1,41 @@
+## Method
+
+
+
+[insert figure w/ overview of pipeline architecture]
+
+
+
+In the following, we present a technique to determine the pose of a robot as perceived by a human. This scenario leads to the following constraints: 
+
+
+In the following, we propose a method for estimating Spot's pose as seen from a human. First, we imposed some constraints on the problem, which resembled the conditions where we first recorded some real-world data: 
+- structured indoor environment
+- ground-based robot, i.e. SPOT
+- the gaze direction is always downwards \& towards the robot
+- the robot is visible at all times, i.e never fully occluded
+- the robot is close to the human
+- structured indoor environment
+These assumptions allowed to easily re-create an approximate real-world scenario, i.e using a procedural Blender pipeline for photorealistic rendering such as BlenderProc2.
+
+
+
+
+Subsequently, we describe an approach to estimate the pose of Spot as seen from a human perspective. To tackle this issue we  from the perspective of a human
+
+
+
+
+---------------------------------------------------------------
+In the following, we propose a method for detecting holes or so-called undersampled regions in point-clouds that assumes we are dealing with data from a relatively struc- tured indoor environment. The key assumptions that follow are:
+1. The point cloud contains a dominant ground plane.
+2. 2D floor-plans of the mapped indoor space.
+3. We have information on the gaze direction of the HoloLens used during data acquisition.
+These constraints allow for a better definition of the use-case and tailor the proposed method to the use-case of refining maps for localisation of ground-based robots.
+
+The first assumption is key for the reduction of the search space of the problem to 2D. The two other assumptions allow for the incorporation of additional data besides the raw point-cloud for (a) reducing the search space to the confines of the mapped area (b) improve the quality of the predicted holes using information on the various gaze directions.
+
+Using this data, an approach was defined that combines the various information provided in a modular way to retain flexibility. The entire pipeline can be seen in Fig. 2.
+---------------------------------------------------------------
+
+

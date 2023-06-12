@@ -102,7 +102,6 @@ def get_bbox3d(box_path):
     ]) * 0.5
     bbox_3d_homo = np.concatenate([bbox_3d, np.ones((8, 1))], axis=1)
     return bbox_3d, bbox_3d_homo
-
 def parse_box(box_path):
     with open(box_path, 'r') as f:
         lines = f.readlines()

@@ -15,6 +15,7 @@ configs = json.load(open(CONFIG))
 SCENE = configs.get("SCENE", 1)
 DBG = bool(configs.get("DBG", 0))
 N_FRAMES = configs.get("N_FRAMES", 1)
+N_Z_LVLS = configs.get("N_Z_LVLS", 1)  # how many different heights should be sampled
 DATA_DIR: Path = Path(configs.get("DATA_DIR", "data"))
 BOP_DATA: Path = DATA_DIR / f"scene_{SCENE}/bop_data"
 ONEPOSE_DATA: Path = DATA_DIR / f"scene_{SCENE}/onepose_data"
@@ -90,7 +91,7 @@ def get_ARPoses_txt():
         f.write(
             "# timestamp, tx, ty, tz, rxx, ryx, rzx, rxy, ryy, rzy, rxz, ryz, rzz\n"
         )
-        for idx, line in enumerate(range(N_FRAMES)):
+        for idx, line in enumerate(range(N_FRAMES * N_Z_LVLS)):
             values: dict = scene_gt_dict[str(idx)]
             tx: float = values["cam_t_m2c"][0]
             ty: float = values["cam_t_m2c"][1]
@@ -135,7 +136,7 @@ def get_FRAMES_txt():
     frames_txt: Path = ONEPOSE_DATA / "Frames.txt"
     with open(frames_txt, "w") as f:
         f.write("# timestamp, frame_index, fx, fy, cx, cy\n")
-        for idx, line in enumerate(range(N_FRAMES)):
+        for idx, line in enumerate(range(N_FRAMES * N_Z_LVLS)):
             line = f"{idx/100}, {idx}, {fx}, {fy}, {cx}, {cy}\n"
             f.write(line)
 

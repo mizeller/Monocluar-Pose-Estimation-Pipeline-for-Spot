@@ -1,9 +1,8 @@
 import blenderproc as bproc
-from blenderproc.python.loader.HavenEnvironmentLoader import get_random_world_background_hdr_img_path_from_haven
+from blenderproc.python.loader.HavenEnvironmentLoader import (
+    get_random_world_background_hdr_img_path_from_haven,
+)
 
-
-
-######################## IMPORTS ########################
 import numpy as np
 import mathutils
 import os
@@ -18,22 +17,11 @@ SCENE = configs.get("SCENE", 1)
 DBG = bool(configs.get("DBG", 0))
 RND_CAM = bool(configs.get("RND_CAM", 0))
 N_FRAMES = int(configs.get("N_FRAMES", 1))
+# how many different heights should be sampled
+# for each z-level, N_FRAMES are generated
+N_Z_LVLS = configs.get("N_Z_LVLS", 1)
 DATA_DIR: Path = Path(configs.get("DATA_DIR", "data"))
 OUTPUT_DIR: Path = DATA_DIR / f"scene_{SCENE}"
-#########################################################
-
-######################## DESCRIPTION ####################
-"""
-1. set scene
-2. set lighting source (location, energy level)
-3. load robot
-4. set camera properties
-    4.1 set point of interest (all cam poses look towards it)
-    4.2 set camera trajectory properties
-        4.2.1 Add translational random walk on top of the POI
-        4.2.2 Rotational camera shaking as a random walk: Sample an axis angle representation
-    4.3 loop over frames // sample camera poses
-"""
 #########################################################
 
 
@@ -45,21 +33,15 @@ if DBG:
     debugpy.listen(5678)
     debugpy.wait_for_client()
 
-
-# 0. initialize blenderproc
+# init bproc & set scene
 bproc.init()
+bproc.world.set_world_background_hdr_img(
+    get_random_world_background_hdr_img_path_from_haven("resources/haven/")
+)
 
-# 1.1 set scene
-
-scene = get_random_world_background_hdr_img_path_from_haven('/Users/mizeller/projects/BlenderProc/resources/haven/')
-bproc.world.set_world_background_hdr_img(scene)
-
-
-
-# 2. load robot
+# load robot & set pose
 robot = bproc.loader.load_obj(filepath="spot/nerf/nerf_spot.dae")
 robot = robot[0]
-# Set pose of object via local-to-world transformation matrix
 robot.set_local2world_mat(
     [
         [1, 0, 0, 0],
@@ -68,14 +50,9 @@ robot.set_local2world_mat(
         [0, 0, 0, 1],
     ]
 )
-# Set category id which will be used in the BopWriter
-robot.set_cp("category_id", 1)
+robot.set_cp("category_id", 1)  # necessary for BOP writer
+poi = np.array([0.0, 0.0, 0.0])  # point of interest
 
-# 3. set camera properties
-# 3.1 set point of interest (all cam poses look towards it)
-poi = np.array([0.0, 0.0, 0.0])
-
-# 3.2 set camera trajectory properties
 
 if RND_CAM:
     # Add translational random walk on top of the POI
@@ -106,78 +83,51 @@ if RND_CAM:
     camera_shaking_rot_axis /= np.linalg.norm(
         camera_shaking_rot_axis, axis=1, keepdims=True
     )
-
-# 3.3 loop over frames // sample camera poses
 x_offset = 1.0
 y_offset = 1.0
-z_offset = 1.0
 # random initial position of camera
 if RND_CAM:
-    x_offset = random.uniform(0.5, 2.5)
-    y_offset = random.uniform(0.5, 2.0)
-    z_offset = random.uniform(0.5, 1.5)
-
-"""
-for i in range(N_FRAMES):
-    # Sample random camera location above objects
-    location = np.random.uniform([-5, -5, 0], [3, 3, 3])
-    # Compute rotation based on vector going from location towards poi
-    rotation_matrix = bproc.camera.rotation_from_forward_vec(
-        poi - location, inplane_rot=np.random.uniform(-0.7854, 0.7854)
-    )
-    # Add homog cam pose based on location an rotation
-    cam2world_matrix = bproc.math.build_transformation_mat(location, rotation_matrix)
-    bproc.camera.add_camera_pose(cam2world_matrix)
-"""
+    x_offset = random.uniform(2.5, 4.0)
+    y_offset = random.uniform(2.5, 4.0)
 
 
-for i in range(N_FRAMES):
-    x = x_offset * np.sin(i / (1 * N_FRAMES) * 2 * np.pi)
-    y = y_offset * np.cos(i / (1 * N_FRAMES) * 2 * np.pi)
-    z = z_offset
+for z in np.linspace(-0.5, 1.5, N_Z_LVLS):
+    for i in range(N_FRAMES):
+        x = x_offset * np.sin(i / (1 * N_FRAMES) * 2 * np.pi)
+        y = y_offset * np.cos(i / (1 * N_FRAMES) * 2 * np.pi)
+        z = z
 
-    # Camera trajectory that defines a quater circle at constant height
-    location_cam = np.array([x, y, z])
+        location_cam = np.array([x, y, z])
+        rotation_matrix = bproc.camera.rotation_from_forward_vec(poi - location_cam)
 
-    rotation_matrix = bproc.camera.rotation_from_forward_vec(poi - location_cam)
-
-    if RND_CAM:
+        if RND_CAM:
         # Compute rotation based on vector going from location towards poi + drift
-        rotation_matrix = bproc.camera.rotation_from_forward_vec(
-            poi + poi_drift[i] - location_cam
-        )
-
-        # random walk axis-angle -> rotation matrix
-        R_rand = np.array(
-            mathutils.Matrix.Rotation(
-                camera_shaking_rot_angle[i], 3, camera_shaking_rot_axis[i]
+            rotation_matrix = bproc.camera.rotation_from_forward_vec(
+                poi + poi_drift[i] - location_cam
             )
+
+            # random walk axis-angle -> rotation matrix
+            R_rand = np.array(
+                mathutils.Matrix.Rotation(
+                    camera_shaking_rot_angle[i], 3, camera_shaking_rot_axis[i]
+                )
+            )
+
+            # Add the random walk to the camera rotation
+            rotation_matrix = R_rand @ rotation_matrix
+
+        cam2world_matrix = bproc.math.build_transformation_mat(
+            location_cam, rotation_matrix
         )
 
-        # Add the random walk to the camera rotation
-        rotation_matrix = R_rand @ rotation_matrix
+        bproc.camera.add_camera_pose(cam2world_matrix)
 
-    # Add homog cam pose based on location an rotation
-    cam2world_matrix = bproc.math.build_transformation_mat(
-        location_cam, rotation_matrix
-    )
-    bproc.camera.add_camera_pose(cam2world_matrix)
-
-
-# Set max samples for quick rendering
+# render results & save to disk
 bproc.renderer.set_max_amount_of_samples(30)
-
-# activate depth rendering
 bproc.renderer.enable_depth_output(True)
-# bproc.renderer.enable_segmentation_output(map_by=["instance", "name"])
-# bproc.renderer.enable_normals_output()
 
-# render the whole pipeline
 data = bproc.renderer.render()
-
-bproc.writer.write_gif_animation(OUTPUT_DIR, data)
-# save output in standard bop format
-
+# bproc.writer.write_gif_animation(OUTPUT_DIR, data)
 bproc.writer.write_bop(
     os.path.join(OUTPUT_DIR, "bop_data"),
     target_objects=[robot],

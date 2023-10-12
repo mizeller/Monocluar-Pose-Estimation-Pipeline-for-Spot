@@ -12,6 +12,7 @@ configs = json.load(open(CONFIG))
 SCENE = configs.get("SCENE", 1)
 DBG = bool(configs.get("DBG", 0))
 N_FRAMES = configs.get("N_FRAMES", 1)
+N_Z_LVLS = configs.get("N_Z_LVLS", 1) # how many different heights should be sampled
 DATA_DIR: Path = Path(configs.get("DATA_DIR", "data"))
 BOP_DATA: Path = DATA_DIR / f"scene_{SCENE}/bop_data"
 ONEPOSE_DATA: Path = DATA_DIR / f"scene_{SCENE}/onepose_data"
@@ -208,7 +209,7 @@ def main():
     ), f"Camera intrinsics file {intrinsics_file} does not exist"
     assert ar_file.exists(), f"AR pose file {ar_file} does not exist"
 
-    for frame in range(0, N_FRAMES):
+    for frame in range(0, N_FRAMES * N_Z_LVLS):
         image_file: Path = BOP_DATA / f"train_pbr/000000/rgb/{str(frame).zfill(6)}.png"
         image = cv2.imread(str(image_file))
 

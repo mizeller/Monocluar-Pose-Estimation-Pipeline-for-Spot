@@ -22,6 +22,7 @@ N_FRAMES = int(configs.get("N_FRAMES", 1))
 N_Z_LVLS = configs.get("N_Z_LVLS", 1)
 DATA_DIR: Path = Path(configs.get("DATA_DIR", "data"))
 OUTPUT_DIR: Path = DATA_DIR / f"scene_{SCENE}"
+MODEL: str = configs.get("MODEL", "nerf")
 #########################################################
 
 
@@ -40,17 +41,29 @@ bproc.world.set_world_background_hdr_img(
 )
 
 # load robot & set pose
-robot = bproc.loader.load_obj(filepath="spot/nerf/nerf_spot.dae")
-robot = robot[0]
-robot.set_local2world_mat(
-    [
-        [1, 0, 0, 0],
-        [0, 1, 0, 0],
-        [0, 0, 1, 0],
-        [0, 0, 0, 1],
-    ]
-)
-robot.set_cp("category_id", 1)  # necessary for BOP writer
+if MODEL == "nerf":
+    robot = bproc.loader.load_obj(filepath="spot/nerf/nerf_spot.dae")
+    robot = robot[0]
+    # Set pose of object via local-to-world transformation matrix
+    robot.set_local2world_mat(
+        [
+            [1, 0, 0, 0],
+            [0, 1, 0, 0],
+            [0, 0, 1, 0],
+            [0, 0, 0, 1],
+        ]
+    )
+    # Set category id which will be used in the BopWriter
+    robot.set_cp("category_id", 1)
+
+elif MODEL == "urdf":
+    # NOTE: the urdf contains spot's body twice, because the base link, i.e. the one w/o parent, has to be removed.
+    #       now it's the first child of the base link and everything works properly
+    robot = bproc.loader.load_urdf(urdf_file="spot/spot_basic.urdf")
+    robot.remove_link_by_index(index=0)
+    robot.set_ascending_category_ids()
+
+
 poi = np.array([0.0, 0.0, 0.0])  # point of interest
 
 
@@ -87,8 +100,8 @@ x_offset = 1.0
 y_offset = 1.0
 # random initial position of camera
 if RND_CAM:
-    x_offset = random.uniform(2.5, 4.0)
-    y_offset = random.uniform(2.5, 4.0)
+    x_offset = random.uniform(0.5, 4.0)
+    y_offset = random.uniform(0.5, 4.0)
 
 
 for z in np.linspace(-0.5, 1.5, N_Z_LVLS):
@@ -101,7 +114,7 @@ for z in np.linspace(-0.5, 1.5, N_Z_LVLS):
         rotation_matrix = bproc.camera.rotation_from_forward_vec(poi - location_cam)
 
         if RND_CAM:
-        # Compute rotation based on vector going from location towards poi + drift
+            # Compute rotation based on vector going from location towards poi + drift
             rotation_matrix = bproc.camera.rotation_from_forward_vec(
                 poi + poi_drift[i] - location_cam
             )
@@ -128,11 +141,21 @@ bproc.renderer.enable_depth_output(True)
 
 data = bproc.renderer.render()
 # bproc.writer.write_gif_animation(OUTPUT_DIR, data)
-bproc.writer.write_bop(
-    os.path.join(OUTPUT_DIR, "bop_data"),
-    target_objects=[robot],
-    depths=data["depth"],
-    colors=data["colors"],
-    m2mm=False,
-    calc_mask_info_coco=False,
-)
+if MODEL == "nerf":
+    bproc.writer.write_bop(
+        os.path.join(OUTPUT_DIR, "bop_data"),
+        target_objects=[robot],
+        depths=data["depth"],
+        colors=data["colors"],
+        m2mm=False,
+        calc_mask_info_coco=False,
+    )
+elif MODEL == "urdf":
+    bproc.writer.write_bop(
+        os.path.join(OUTPUT_DIR, "bop_data"),
+        target_objects=robot.links,
+        depths=data["depth"],
+        colors=data["colors"],
+        m2mm=False,
+        calc_mask_info_coco=False,
+    )

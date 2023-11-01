@@ -21,7 +21,7 @@ N_FRAMES = int(configs.get("N_FRAMES", 1))
 # for each z-level, N_FRAMES are generated
 N_Z_LVLS = configs.get("N_Z_LVLS", 1)
 DATA_DIR: Path = Path(configs.get("DATA_DIR", "data"))
-OUTPUT_DIR: Path = DATA_DIR / f"scene_{SCENE}"
+OUTPUT_DIR: Path = DATA_DIR / f"scene_{SCENE}-annotate"
 MODEL: str = configs.get("MODEL", "nerf")
 #########################################################
 

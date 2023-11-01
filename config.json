@@ -1,9 +1,9 @@
 {
-  "SCENE": "09",
+  "SCENE": "01",
   "DBG": 0,
-  "N_FRAMES": 50,
-  "N_Z_LVLS": 8,
-  "RND_CAM": 1,
-  "DATA_DIR": "even_more_synthetic_data_2",
+  "N_FRAMES": 5,
+  "N_Z_LVLS": 3,
+  "RND_CAM": 0,
+  "DATA_DIR": "dbg",
   "MODEL": "nerf"
 }

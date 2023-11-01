@@ -16,7 +16,7 @@ DBG = bool(configs.get("DBG", 0))
 RND_CAM = bool(configs.get("RND_CAM", 0))
 N_FRAMES = int(configs.get("N_FRAMES", 1))
 DATA_DIR: Path = Path(configs.get("DATA_DIR", "data"))
-OUTPUT_DIR: Path = DATA_DIR / f"scene_{SCENE}"
+OUTPUT_DIR: Path = DATA_DIR / f"scene_{SCENE}-annotate"
 MODEL: str = configs.get("MODEL", "nerf")
 assert MODEL in ["nerf", "urdf"], "MODEL must be either 'nerf' or 'urdf'"
 #########################################################

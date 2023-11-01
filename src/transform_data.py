@@ -17,8 +17,8 @@ DBG = bool(configs.get("DBG", 0))
 N_FRAMES = configs.get("N_FRAMES", 1)
 N_Z_LVLS = configs.get("N_Z_LVLS", 1)  # how many different heights should be sampled
 DATA_DIR: Path = Path(configs.get("DATA_DIR", "data"))
-BOP_DATA: Path = DATA_DIR / f"scene_{SCENE}/bop_data"
-ONEPOSE_DATA: Path = DATA_DIR / f"scene_{SCENE}/onepose_data"
+BOP_DATA: Path = DATA_DIR / f"scene_{SCENE}-annotate/bop_data"
+ONEPOSE_DATA: Path = DATA_DIR / f"scene_{SCENE}-annotate/onepose_data"
 MODEL: str = configs.get("MODEL", "nerf")
 assert MODEL in ["nerf", "urdf"], "MODEL must be either 'nerf' or 'urdf'"
 #########################################################

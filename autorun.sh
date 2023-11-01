@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define the number of loops
-num_loops=10
+num_loops=2
 
 # Loop to change the "SCENE" parameter and run the pipeline
 for ((i=0; i<num_loops; i++)); do

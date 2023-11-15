@@ -6,7 +6,7 @@
 ![](img/all_in_one.jpeg) 
 
 
-This repository contains the code for the 3D vision project. Specifially it contains a pipeline to train a pose estimation algorithm of Boston Dynamics' Spot with OnePose++ as well as to create synthetic data for it, using BlenderProc2.
+This repository contains the code for the 3D vision project. Specifically it contains a pipeline to train a pose estimation algorithm of Boston Dynamics' Spot with OnePose++ as well as to create synthetic data for it, using BlenderProc2.
 
 ### Main Contributions
 - **Accurate NeRF model of Spot** (see [Spot_NeRF](spot/nerf/nerf_spot.dae)) (created using [PolyCam](https://poly.cam))
@@ -25,7 +25,7 @@ Blenderproc is required to create synthetic data. The installation instructions 
 For this project, we additionally installed all HDRIs from polyhaven.com using `blenderproc download haven`.
 
 ### OnePose++
-To install OnePose++, please follow the instructions from their ReadMe. We forked their repository and added some additional changes to make it compatible with our conversion scripts from BOP to their custom dataformat. The forked repository can be found [here](https://github.com/Maemaemaeko/OnePose_Plus_Plus_Spot) if the specific commits are of interest.
+To install OnePose++, please follow the instructions from their ReadMe. We forked their repository and added some additional changes to make it compatible with our conversion scripts from BOP to their custom dateformat. The forked repository can be found [here](https://github.com/Maemaemaeko/OnePose_Plus_Plus_Spot) if the specific commits are of interest.
 
 
 ### Maplab
@@ -55,9 +55,9 @@ First it runs the BlenderProc pipeline `blenderproc run src/synthetic_data_pipel
 └── ...
 ```
 
-The conversion scripts create the onepose_data directory, which can directly be used for training our modified OnePose++ algorihtm. After further processing, it should be possible to convert the BOP data directly to the OnePose++ data format. However, the OnePose++ data requires a `Box.txt` file, which we could not create from the BOP data.
+The conversion scripts create the onepose_data directory, which can directly be used for training our modified OnePose++ algorithm. After further processing, it should be possible to convert the BOP data directly to the OnePose++ data format. However, the OnePose++ data requires a `Box.txt` file, which we could not create from the BOP data.
 
-We derived the Box.txt parameters by visually inspectinb the robot model in the world frame in Blender. We think, our data format is more accessible, albeit less robust, because it uses regular rotation matrices insted of quaternions.
+We derived the Box.txt parameters by visually inspecting the robot model in the world frame in Blender. We think, our data format is more accessible, albeit less robust, because it uses regular rotation matrices instead of quaternions.
 
 ```
 .
@@ -87,9 +87,9 @@ The config.json file contains all the parameters for the BlenderProc pipeline. I
 {
     "DATA_DIR": "synthetic_data_new",   // where to store the data
     "SCENE": "00",                      // sub directory of DATA_DIR
-    "DBG": 0,                           // wheter to use the debugger in BlenderProc, enables for visual inspection of the scene
+    "DBG": 0,                           // whether to use the debugger in BlenderProc, enables for visual inspection of the scene
     "N_FRAMES": 100,                    // how many frames to render
-    "RND_CAM": 1,                       // wheter the camera should move randomly
+    "RND_CAM": 1,                       // whether the camera should move randomly
     "MODEL": "nerf"                     // which model to use, NeRF or URDF from https://github.com/heuristicus/spot_ros
 }
 ```

@@ -12,7 +12,7 @@ configs = json.load(open(CONFIG))
 SCENE = configs.get("SCENE", 1)
 DBG = bool(configs.get("DBG", 0))
 N_FRAMES = configs.get("N_FRAMES", 1)
-N_Z_LVLS = configs.get("N_Z_LVLS", 1) # how many different heights should be sampled
+N_Z_LVLS = configs.get("N_Z_LVLS", 1)  # how many different heights should be sampled
 DATA_DIR: Path = Path(configs.get("DATA_DIR", "data"))
 BOP_DATA: Path = DATA_DIR / f"scene_{SCENE}-annotate/bop_data"
 ONEPOSE_DATA: Path = DATA_DIR / f"scene_{SCENE}-annotate/onepose_data"
@@ -135,7 +135,7 @@ def draw_world_frame(reproj_box3d, image):
     pt_x = (int(reproj_box3d[8][0]) + 50, int(int(reproj_box3d[8][1])))
     pt_y = (int(reproj_box3d[8][0]), int(int(reproj_box3d[8][1])) + 50)
 
-    image = cv2.circle(image, origin, 10, (0, 0, 0), -1)
+    image = cv2.circle(image, origin, 10, (255, 255, 255), -1)
     image = cv2.line(image, origin, pt_x, (0, 0, 255), 2)  # x-axis, red
     image = cv2.line(image, origin, pt_y, (0, 255, 0), 2)  # y-axis, green
     return
@@ -143,7 +143,6 @@ def draw_world_frame(reproj_box3d, image):
 
 def get_points(image, frame):
     T_ow = np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
-
     with open(ar_file, "r") as f:
         lines = [l.strip() for l in f.readlines()]
     eles = lines[frame + 1].split(",")
@@ -156,7 +155,7 @@ def get_points(image, frame):
     K_homo = data_process_anno(intrinsics_file)
     reproj_box3d = reproj(K_homo, T_oc, bbox_3d_homo.T)
     draw_box3d(reproj_box3d=reproj_box3d, image=image)
-    # draw_world_frame(reproj_box3d=reproj_box3d, image=image)
+    draw_world_frame(reproj_box3d=reproj_box3d, image=image)
 
     """
     x0 = reproj_box3d[0][0]  # back, left, down

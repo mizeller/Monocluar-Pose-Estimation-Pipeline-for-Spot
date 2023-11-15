@@ -20,7 +20,11 @@ DATA_DIR: Path = Path(configs.get("DATA_DIR", "data"))
 BOP_DATA: Path = DATA_DIR / f"scene_{SCENE}-annotate/bop_data"
 ONEPOSE_DATA: Path = DATA_DIR / f"scene_{SCENE}-annotate/onepose_data"
 MODEL: str = configs.get("MODEL", "nerf")
-assert MODEL in ["nerf", "urdf"], "MODEL must be either 'nerf' or 'urdf'"
+assert MODEL in [
+    "nerf",
+    "urdf",
+    "poly",
+], "MODEL must be either 'nerf' or 'urdf' or 'poly'"
 #########################################################
 
 
@@ -77,7 +81,7 @@ def get_ARPoses_txt():
         # rotation_matrix = np.linalg.inv(rotation_matrix)
         rotation_quaternion: np.ndarray = R.from_matrix(rotation_matrix).as_quat()
 
-        # now overrwrite the rotation matrix with the quaternion
+        # now overwrite the rotation matrix with the quaternion
         # value["cam_R_m2c"] = rotation_quaternion.tolist()
 
     """
@@ -170,16 +174,16 @@ def main():
     # OnePose++ for. It can be extracted directly from blender.
     # TODO: modify these values if necessary
 
-    if MODEL == "nerf":
+    if MODEL in ["nerf", "poly"]:
         bbox_properties = {
             # bounding box center coordinates in world coordinates
-            "px": 0.05,  # urdf spot: 0.0,
-            "py": 0.05,  # urdf spot: 0.0,
-            "pz": 0.05,  # urdf spot: 0.0,
+            "px": 0.05,
+            "py": 0.05,
+            "pz": 0.05,
             # bounding box dimensions in world coordinates
-            "ex": 0.2,  # urdf spot: 0.85,
-            "ey": 0.82,  # urdf spot: 0.2,
-            "ez": 0.32,  # urdf spot: 0.2,
+            "ex": 0.2,
+            "ey": 0.82,
+            "ez": 0.32,
             # bounding box orientation in world coordinates (quaternion)
             "qw": 0.0,
             "qx": 0.2,

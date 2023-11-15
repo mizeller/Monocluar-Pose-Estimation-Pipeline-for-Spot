@@ -9,3 +9,4 @@ blenderproc/external/vhacd
 .cache/
 more_synthetic_data/
 more_synthetic_data_urdf/
+output/

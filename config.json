@@ -1,9 +1,9 @@
 {
-  "SCENE": "01",
+  "SCENE": "00",
   "DBG": 0,
-  "N_FRAMES": 5,
-  "N_Z_LVLS": 3,
+  "N_FRAMES": 15,
+  "N_Z_LVLS": 1,
   "RND_CAM": 0,
-  "DATA_DIR": "dbg",
-  "MODEL": "nerf"
+  "DATA_DIR": "output/test_poly",
+  "MODEL": "poly"
 }

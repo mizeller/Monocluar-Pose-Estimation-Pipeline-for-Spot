@@ -23,6 +23,11 @@ N_Z_LVLS = configs.get("N_Z_LVLS", 1)
 DATA_DIR: Path = Path(configs.get("DATA_DIR", "data"))
 OUTPUT_DIR: Path = DATA_DIR / f"scene_{SCENE}-annotate"
 MODEL: str = configs.get("MODEL", "nerf")
+assert MODEL in [
+    "nerf",
+    "urdf",
+    "poly",
+], "MODEL must be either 'nerf' or 'urdf' or 'poly'"
 #########################################################
 
 
@@ -56,6 +61,11 @@ if MODEL == "nerf":
     # Set category id which will be used in the BopWriter
     robot.set_cp("category_id", 1)
 
+elif MODEL == "poly":
+    robot = bproc.loader.load_obj(filepath="spot/blender/poly_01.dae")
+    robot = robot[0]
+    robot.set_cp("category_id", 1)
+
 elif MODEL == "urdf":
     # NOTE: the urdf contains spot's body twice, because the base link, i.e. the one w/o parent, has to be removed.
     #       now it's the first child of the base link and everything works properly
@@ -63,9 +73,7 @@ elif MODEL == "urdf":
     robot.remove_link_by_index(index=0)
     robot.set_ascending_category_ids()
 
-
-poi = np.array([0.0, 0.0, 0.0])  # point of interest
-
+poi = np.array([0, 0, 0])
 
 if RND_CAM:
     # Add translational random walk on top of the POI
@@ -104,7 +112,7 @@ if RND_CAM:
     y_offset = random.uniform(0.5, 4.0)
 
 
-for z in np.linspace(-0.5, 1.5, N_Z_LVLS):
+for z in np.linspace(0.5, 1.5, N_Z_LVLS):
     for i in range(N_FRAMES):
         x = x_offset * np.sin(i / (1 * N_FRAMES) * 2 * np.pi)
         y = y_offset * np.cos(i / (1 * N_FRAMES) * 2 * np.pi)
@@ -141,7 +149,7 @@ bproc.renderer.enable_depth_output(True)
 
 data = bproc.renderer.render()
 # bproc.writer.write_gif_animation(OUTPUT_DIR, data)
-if MODEL == "nerf":
+if MODEL in ["nerf", "poly"]:
     bproc.writer.write_bop(
         os.path.join(OUTPUT_DIR, "bop_data"),
         target_objects=[robot],

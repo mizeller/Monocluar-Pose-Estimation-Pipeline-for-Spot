@@ -6,13 +6,14 @@ import json
 
 
 ######################## GLOBALS ########################
-global SCENE, DBG, N_FRAMES, INPUT_DIR, ONEPOSE_DATA
+global MODEL, SCENE, DBG, N_FRAMES, INPUT_DIR, ONEPOSE_DATA
 CONFIG = Path("config.json")
 configs = json.load(open(CONFIG))
 SCENE = configs.get("SCENE", 1)
 DBG = bool(configs.get("DBG", 0))
 N_FRAMES = configs.get("N_FRAMES", 1)
 N_Z_LVLS = configs.get("N_Z_LVLS", 1)  # how many different heights should be sampled
+MODEL: str = configs.get("MODEL", "nerf")
 DATA_DIR: Path = Path(configs.get("DATA_DIR", "data"))
 BOP_DATA: Path = DATA_DIR / f"scene_{SCENE}-annotate/bop_data"
 ONEPOSE_DATA: Path = DATA_DIR / f"scene_{SCENE}-annotate/onepose_data"
@@ -143,6 +144,20 @@ def draw_world_frame(reproj_box3d, image):
 
 def get_points(image, frame):
     T_ow = np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
+
+    if MODEL == "poly":
+        # NOTE - had to tweak T_ow to get the correct orientation...not sure why
+        # that was the case for the poly model...
+        theta = np.radians(45)  # Convert degrees to radians
+        T_ow = np.array(
+            [
+                [np.cos(theta), 0, np.sin(theta), 0],
+                [0, 1, 0, 0],
+                [-np.sin(theta), 0, np.cos(theta), 0],
+                [0, 0, 0, 1],
+            ]
+        )
+
     with open(ar_file, "r") as f:
         lines = [l.strip() for l in f.readlines()]
     eles = lines[frame + 1].split(",")
@@ -155,40 +170,7 @@ def get_points(image, frame):
     K_homo = data_process_anno(intrinsics_file)
     reproj_box3d = reproj(K_homo, T_oc, bbox_3d_homo.T)
     draw_box3d(reproj_box3d=reproj_box3d, image=image)
-    draw_world_frame(reproj_box3d=reproj_box3d, image=image)
-
-    """
-    x0 = reproj_box3d[0][0]  # back, left, down
-    y0 = reproj_box3d[0][1]
-    x1 = reproj_box3d[1][0]  # front, left, down
-    y1 = reproj_box3d[1][1]
-    x2 = reproj_box3d[2][0]  # front, left, up
-    y2 = reproj_box3d[2][1]
-    x3 = reproj_box3d[3][0]  # back, left, up
-    y3 = reproj_box3d[3][1]
-    x4 = reproj_box3d[4][0]  # back, right, down
-    y4 = reproj_box3d[4][1]
-    x5 = reproj_box3d[5][0]  # front, right, down
-    y5 = reproj_box3d[5][1]
-    x6 = reproj_box3d[6][0]  # front, right, up
-    y6 = reproj_box3d[6][1]
-    x7 = reproj_box3d[7][0]  # back, right, up
-    y7 = reproj_box3d[7][1]
-
-    image = cv2.line(image, (int(x0), int(y0)), (int(x1), int(y1)), (0, 255, 0), 2)
-    image = cv2.line(image, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
-    image = cv2.line(image, (int(x0), int(y0)), (int(x3), int(y3)), (0, 255, 0), 2)
-    image = cv2.line(image, (int(x0), int(y0)), (int(x4), int(y4)), (0, 255, 0), 2)
-    image = cv2.line(image, (int(x1), int(y1)), (int(x5), int(y5)), (0, 255, 0), 2)
-    image = cv2.line(image, (int(x2), int(y2)), (int(x6), int(y6)), (0, 255, 0), 2)
-    image = cv2.line(image, (int(x2), int(y2)), (int(x3), int(y3)), (0, 255, 0), 2)
-    image = cv2.line(image, (int(x3), int(y3)), (int(x7), int(y7)), (0, 255, 0), 2)
-    image = cv2.line(image, (int(x4), int(y4)), (int(x5), int(y5)), (0, 255, 0), 2)
-    image = cv2.line(image, (int(x4), int(y4)), (int(x7), int(y7)), (0, 255, 0), 2)
-    image = cv2.line(image, (int(x5), int(y5)), (int(x6), int(y6)), (0, 255, 0), 2)
-    image = cv2.line(image, (int(x6), int(y6)), (int(x7), int(y7)), (0, 255, 0), 2)
-    """
-
+    # draw_world_frame(reproj_box3d=reproj_box3d, image=image)
     return 0
 
 

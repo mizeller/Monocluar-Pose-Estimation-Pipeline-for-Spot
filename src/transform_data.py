@@ -20,11 +20,6 @@ DATA_DIR: Path = Path(configs.get("DATA_DIR", "data"))
 BOP_DATA: Path = DATA_DIR / f"scene_{SCENE}-annotate/bop_data"
 ONEPOSE_DATA: Path = DATA_DIR / f"scene_{SCENE}-annotate/onepose_data"
 MODEL: str = configs.get("MODEL", "nerf")
-assert MODEL in [
-    "nerf",
-    "urdf",
-    "poly",
-], "MODEL must be either 'nerf' or 'urdf' or 'poly'"
 #########################################################
 
 
@@ -171,10 +166,10 @@ def main():
 
     # 1. add default Box.txt file to the output directory
     # it contains the pose of the (constant) 3D bounding box of the object we want to train
-    # OnePose++ for. It can be extracted directly from blender.
+    # OnePose++ for. It can be extracted directly (manually) from blender.
     # TODO: modify these values if necessary
 
-    if MODEL in ["nerf", "poly"]:
+    if MODEL == "nerf":
         bbox_properties = {
             # bounding box center coordinates in world coordinates
             "px": 0.05,
@@ -184,6 +179,22 @@ def main():
             "ex": 0.2,
             "ey": 0.82,
             "ez": 0.32,
+            # bounding box orientation in world coordinates (quaternion)
+            "qw": 0.0,
+            "qx": 0.2,
+            "qy": 0.0,
+            "qz": 0.0,
+        }
+    elif MODEL == "poly":
+        bbox_properties = {
+            # bounding box center coordinates in world coordinates
+            "px": 0.0,  # move left and right
+            "py": 0.65,  # move up and down
+            "pz": 0.1,  # move back and forth
+            # bounding box dimensions in world coordinates
+            "ex": 0.3,
+            "ey": 0.425,
+            "ez": 0.9,
             # bounding box orientation in world coordinates (quaternion)
             "qw": 0.0,
             "qx": 0.2,

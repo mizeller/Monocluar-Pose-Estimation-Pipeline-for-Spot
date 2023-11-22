@@ -13,6 +13,7 @@ python src/visualise_data.py
 # read params from config.json (`brew install jq` if necessary)
 echo "Creating the animation gif and removing the separate frames"
 DATA_DIR=$(jq -r '.DATA_DIR' config.json)
+DATA_DIR=output/$DATA_DIR # new default location of output --> output dir
 SCENE=$(jq -r '.SCENE' config.json)
 ANNOTATED_FRAMES="$DATA_DIR/scene_$SCENE-annotate/onepose_data/annotated_frames"
 ONEPOSE_DATA="$DATA_DIR/scene_$SCENE-annotate/onepose_data"

@@ -7,6 +7,4 @@ resources/
 blenderproc/external/vhacd
 .scratch
 .cache/
-more_synthetic_data/
-more_synthetic_data_urdf/
 output/

@@ -9,18 +9,20 @@ import os
 from pathlib import Path
 import json
 import random
+import loguru
 
 ######################## GLOBALS ########################
 CONFIG = Path("config.json")
 configs = json.load(open(CONFIG))
 SCENE = configs.get("SCENE", 1)
 DBG = bool(configs.get("DBG", 0))
+COCO = bool(configs.get("COCO", 0))
 RND_CAM = bool(configs.get("RND_CAM", 0))
 N_FRAMES = int(configs.get("N_FRAMES", 1))
 # how many different heights should be sampled
 # for each z-level, N_FRAMES are generated
 N_Z_LVLS = configs.get("N_Z_LVLS", 1)
-DATA_DIR: Path = Path(configs.get("DATA_DIR", "data"))
+DATA_DIR: Path = Path("output") / Path(configs.get("DATA_DIR", "data"))
 OUTPUT_DIR: Path = DATA_DIR / f"scene_{SCENE}-annotate"
 MODEL: str = configs.get("MODEL", "nerf")
 assert MODEL in [
@@ -146,9 +148,21 @@ for z in np.linspace(0.5, 1.5, N_Z_LVLS):
 # render results & save to disk
 bproc.renderer.set_max_amount_of_samples(30)
 bproc.renderer.enable_depth_output(True)
+bproc.renderer.enable_segmentation_output(map_by=["category_id", "instance", "name"])
 
 data = bproc.renderer.render()
 # bproc.writer.write_gif_animation(OUTPUT_DIR, data)
+
+if COCO:
+    loguru.logger.info("Writing COCO annotations...")
+    bproc.writer.write_coco_annotations(
+        os.path.join(OUTPUT_DIR, "coco_data"),
+        instance_segmaps=data["instance_segmaps"],
+        instance_attribute_maps=data["instance_attribute_maps"],
+        colors=data["colors"],
+        color_file_format="JPEG",
+    )
+
 if MODEL in ["nerf", "poly"]:
     bproc.writer.write_bop(
         os.path.join(OUTPUT_DIR, "bop_data"),
@@ -158,6 +172,8 @@ if MODEL in ["nerf", "poly"]:
         m2mm=False,
         calc_mask_info_coco=False,
     )
+
+
 elif MODEL == "urdf":
     bproc.writer.write_bop(
         os.path.join(OUTPUT_DIR, "bop_data"),

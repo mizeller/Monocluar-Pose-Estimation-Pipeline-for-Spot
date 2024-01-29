@@ -1,10 +1,10 @@
-# 3DV Project - Monocular Pose Estimation for Human-Robot Co-Localization
-
-## Project Description
-
-
-![](img/all_in_one.jpeg) 
-
+# Monocular Pose Estimation for Human-Robot Co-Localization
+#### 
+<!-- TODO: add links -->
+<h4 align="center"><a href="https://www.vvz.ethz.ch/Vorlesungsverzeichnis/lerneinheit.view?lerneinheitId=178454&semkez=2024S&ansicht=LEHRVERANSTALTUNGEN&lang=de">3DV Project, ETH Zurich, Spring '23</a> | <a href="https://drive.proton.me/urls/F3XC232YG0#3b0nFkYGacFV">Project Report</a></h3>
+<p align="center">
+<img src="img/all_in_one.jpeg"/>
+</p>
 
 This repository contains the code for the 3D vision project. Specifically it contains a pipeline to train a pose estimation algorithm of Boston Dynamics' Spot with OnePose++ as well as to create synthetic data for it, using BlenderProc2.
 
@@ -130,4 +130,4 @@ The world_to_camera_projection.ipynb contains the code with which we attempted t
 - [ ] create a better robot model after the NeRF model, which can be controlled
 - [ ] add different lighting conditions to the synthetic data
 - [ ] add occlusions to the synthetic data
-- [ ] change conversion scripts, to use OnePose directly
+- [x] change conversion scripts, to use OnePose directly

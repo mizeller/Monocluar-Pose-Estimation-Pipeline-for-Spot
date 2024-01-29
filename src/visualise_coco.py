@@ -3,6 +3,11 @@
 
 # TODO - make this script nicer...
 
+
+# NOTE - this command actually suffices to visualise individual frames if so desired! just point to the correct folder
+# blenderproc vis coco [-i <image index>] [-c <coco annotations json>] [-b <base folder of coco json and image files>]
+# blenderproc vis coco  -i 10                                           -b output/coco_training_data/scene_00-annotate/coco_data 
+
 import base64
 import json
 import numpy as np

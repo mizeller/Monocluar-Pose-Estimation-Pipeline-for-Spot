@@ -16,7 +16,7 @@ SCENE = configs.get("SCENE", 1)
 DBG = bool(configs.get("DBG", 0))
 N_FRAMES = configs.get("N_FRAMES", 1)
 N_Z_LVLS = configs.get("N_Z_LVLS", 1)  # how many different heights should be sampled
-DATA_DIR: Path = Path(configs.get("DATA_DIR", "data"))
+DATA_DIR: Path = Path("output") / Path(configs.get("DATA_DIR", "data"))
 BOP_DATA: Path = DATA_DIR / f"scene_{SCENE}-annotate/bop_data"
 ONEPOSE_DATA: Path = DATA_DIR / f"scene_{SCENE}-annotate/onepose_data"
 MODEL: str = configs.get("MODEL", "nerf")
@@ -172,13 +172,14 @@ def main():
     if MODEL == "nerf":
         bbox_properties = {
             # bounding box center coordinates in world coordinates
-            "px": 0.05,
+            # the commented dimensions refer to Spot w/o the arm
+            "px": 0.05, # 0.025
             "py": 0.05,
-            "pz": 0.05,
+            "pz": 0.05, # -0.025
             # bounding box dimensions in world coordinates
             "ex": 0.2,
-            "ey": 0.82,
-            "ez": 0.32,
+            "ey": 0.82, # 0.7
+            "ez": 0.32, # 0.2
             # bounding box orientation in world coordinates (quaternion)
             "qw": 0.0,
             "qx": 0.2,

@@ -14,7 +14,7 @@ DBG = bool(configs.get("DBG", 0))
 N_FRAMES = configs.get("N_FRAMES", 1)
 N_Z_LVLS = configs.get("N_Z_LVLS", 1)  # how many different heights should be sampled
 MODEL: str = configs.get("MODEL", "nerf")
-DATA_DIR: Path = Path(configs.get("DATA_DIR", "data"))
+DATA_DIR: Path = Path("output") / Path(configs.get("DATA_DIR", "data"))
 BOP_DATA: Path = DATA_DIR / f"scene_{SCENE}-annotate/bop_data"
 ONEPOSE_DATA: Path = DATA_DIR / f"scene_{SCENE}-annotate/onepose_data"
 #########################################################
